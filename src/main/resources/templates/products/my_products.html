@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Productos · Trukea</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body class="bg-light">
+
+<!-- Navbar -->
+<th:block th:replace="~{navbar :: navbar}"></th:block>
+
+<main class="container my-4">
+
+    <!-- Encabezado y botón "Nuevo" -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Mis productos</h1>
+        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#NEW_PRODUCT">
+            <i class="fas fa-plus-circle me-1"></i> Publicar producto
+        </button>
+    </div>
+
+    <!-- Lista -->
+    <div class="row">
+        <div class="col-md-6 mb-3" th:each="product : ${products}">
+            <div class="card border-0 rounded-3 shadow-sm" style="height: 100%;">
+                <div class="card-body p-4 d-flex">
+
+                    <!-- Texto -->
+                    <div class="pe-3"
+                         style="width: 50%; min-width: 0; display: flex; flex-direction: column; height: 300px; overflow: hidden;">
+                        <h2 class="card-title text-dark fw-bold" th:text="${product.title}">Título</h2>
+
+                        <p class="card-text text-secondary small mb-2"
+                           style="overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.1;">
+                            <i class="fa-solid fa-align-left me-2"></i>
+                            <span th:text="${product.description}">Descripción</span>
+                        </p>
+
+                        <p class="card-text text-secondary small mb-2">
+                            <i class="fa-solid fa-layer-group me-2"></i><span th:text="${product.state}">Estado</span>
+                        </p>
+
+                        <p class="card-text text-secondary small mb-2">
+                            <i class="fa-solid fa-tags me-2"></i><span th:text="${product.category}">Categoría</span>
+                        </p>
+
+                        <p class="card-text text-secondary small mb-2">
+                            <i class="fa-solid fa-calendar me-2"></i>
+                            <span th:text="${#temporals.format(product.datePublication, 'dd/MM/yyyy')}">01/01/2025</span>
+                        </p>
+
+                        <p class="card-text text-secondary small mb-2" th:if="${product.preferences}">
+                            <i class="fa-solid fa-arrows-rotate me-2"></i>Intercambiar por:
+                            <span th:each="pref, stat : ${product.preferences}"
+                                  th:text="${pref + (stat.last ? '' : ', ')}"></span>
+                        </p>
+
+                        <div class="d-flex gap-2 mt-auto">
+                            <!-- Editar: abre modal por ID -->
+                            <button class="btn btn-outline-primary btn-sm px-3"
+                                    th:attr="data-bs-target='#EDIT_PRODUCT__' + ${product.idProduct}"
+                                    data-bs-toggle="modal">
+                                <i class="fas fa-pen"></i> Editar
+                            </button>
+
+                            <!-- Eliminar: abre modal por ID -->
+                            <button class="btn btn-outline-danger btn-sm px-3"
+                                    data-bs-toggle="modal"
+                                    th:attr="data-bs-target='#DELETE_PRODUCT__' + ${product.idProduct}">
+                                <i class="fas fa-trash-alt"></i> Eliminar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Imagen -->
+                    <div style="width: 50%; max-width: 300px; height: 300px;">
+                        <img th:if="${product.photo != null}"
+                             th:src="@{/product-images/{photo}(photo=${product.photo})}"
+                             alt="Imagen del producto"
+                             class="img-fluid h-100"
+                             style="object-fit: cover; border-radius: .25rem;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal ELIMINAR (uno por producto) -->
+            <div class="modal fade" th:id="'DELETE_PRODUCT__' + ${product.idProduct}" tabindex="-1"
+                 aria-hidden="true" th:attr="aria-labelledby='DELETE_PRODUCTLabel__' + ${product.idProduct}">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header" style="background-color:#dc3545;color:#fff;">
+                            <h5 class="modal-title" th:id="'DELETE_PRODUCTLabel__' + ${product.idProduct}">
+                                <i class="fa-solid fa-trash me-2"></i> Eliminar producto
+                            </h5>
+                            <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <p class="mb-3">¿Estás seguro de eliminar este producto?</p>
+
+                            <div class="border rounded p-3 bg-light">
+                                <div class="fw-semibold mb-1">Título</div>
+                                <div class="mb-2" th:text="${product.title}">Título</div>
+
+                                <div class="fw-semibold mb-1">Descripción</div>
+                                <div class="mb-2 small text-secondary" th:text="${product.description}">Descripción</div>
+
+                                <div class="fw-semibold mb-1">Fecha de publicación</div>
+                                <div class="mb-2 small text-secondary"
+                                     th:text="${#temporals.format(product.datePublication,'dd/MM/yyyy')}">01/01/2025</div>
+
+                                <div class="fw-semibold mb-1">Condición</div>
+                                <div class="small text-secondary" th:text="${product.state}">Estado</div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer justify-content-center">
+                            <form th:action="@{'/products/' + ${product.idProduct} + '/delete'}" method="post" class="d-inline">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <button type="submit" class="btn btn-outline-success">Aceptar</button>
+                            </form>
+                            <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /Modal ELIMINAR -->
+
+
+            <!-- Modal EDITAR (uno por producto) -->
+            <div class="modal fade edit-modal" th:id="'EDIT_PRODUCT__' + ${product.idProduct}" tabindex="-1"
+                 aria-hidden="true" th:attr="aria-labelledby='EDIT_PRODUCTLabel__' + ${product.idProduct}">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title" th:id="'EDIT_PRODUCTLabel__' + ${product.idProduct}">
+                                <i class="fa-solid fa-edit me-2"></i> Editar producto
+                            </h5>
+                            <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <!-- POST /products/{id} -->
+                        <form class="edit-form" th:action="@{'/products/' + ${product.idProduct}}" method="post" enctype="multipart/form-data">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">Título</label>
+                                            <input type="text" class="form-control edit-title" name="title"
+                                                   th:value="${product.title}" maxlength="25" required>
+                                            <small class="form-text text-muted edit-title-count">0 / 25</small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">Descripción</label>
+                                            <textarea class="form-control edit-desc" name="description" rows="4"
+                                                      maxlength="200" required
+                                                      th:text="${product.description}"></textarea>
+                                            <small class="form-text text-muted edit-desc-count">0 / 200</small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">Condición</label>
+                                            <select name="state" class="form-select" required>
+                                                <option value="">Seleccione una condición</option>
+                                                <option value="Nuevo" th:selected="${product.state?.name() == 'Nuevo' or product.state == 'Nuevo'}">Nuevo</option>
+                                                <option value="Semi_nuevo" th:selected="${product.state?.name() == 'Semi_nuevo' or product.state == 'Semi_nuevo'}">Semi-nuevo</option>
+                                                <option value="Reparado" th:selected="${product.state?.name() == 'Reparado' or product.state == 'Reparado'}">Reparado</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">Foto del producto</label>
+                                            <input type="file" name="photo" class="form-control edit-photo" accept="image/*">
+                                            <input type="hidden" name="existingPhoto" th:value="${product.photo}">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">Categoría del producto</label>
+                                            <select name="category" class="form-select" required>
+                                                <option value="">Seleccione una categoría</option>
+                                                <option th:each="c : ${T(com.apirip.trukeamonolito.product.domain.ProductCategory).values()}"
+                                                        th:value="${c}" th:text="${c}"
+                                                        th:selected="${product.category?.name() == c?.name() or product.category == c}">
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">Categorías de interés (1 a 3)</label>
+                                            <div class="border rounded p-2 pref-box" style="max-height:300px;overflow-y:auto;">
+                                                <div class="form-check" th:each="c : ${T(com.apirip.trukeamonolito.product.domain.ProductCategory).values()}">
+                                                    <input class="form-check-input pref-edit" type="checkbox" name="preferences"
+                                                           th:id="|prefEdit_${product.idProduct}_${c}|"
+                                                           th:value="${c}"
+                                                           th:checked="${#lists.contains(product.preferences, c)}">
+
+                                                    <label class="form-check-label"
+                                                           th:for="|prefEdit_${product.idProduct}_${c}|"
+                                                           th:text="${c}">Cat</label>
+                                                </div>
+                                            </div>
+                                            <div class="alert alert-danger mt-2 py-2 px-3 pref-alert d-none">Selecciona entre 1 y 3 categorías.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer justify-content-center">
+                                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-outline-primary">Guardar cambios</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- /Modal EDITAR -->
+        </div>
+    </div>
+
+    <!-- Sin productos -->
+    <div class="alert alert-info text-center" th:if="${#lists.isEmpty(products)}">
+        Aún no has ofrecido ningún producto.
+    </div>
+
+</main>
+
+<!-- Modal NUEVO PRODUCTO (único) -->
+<div class="modal fade" id="NEW_PRODUCT" tabindex="-1" aria-hidden="true" aria-labelledby="NEW_PRODUCTLabel">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="NEW_PRODUCTLabel">
+                    <i class="fa-solid fa-box-open me-2"></i> Añadir Producto
+                </h5>
+                <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- POST /products -->
+            <form th:action="@{/products}" method="post" enctype="multipart/form-data" id="newProductForm">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Título</label>
+                                <input type="text" class="form-control" name="title" id="txtTitleAdd" maxlength="25" required>
+                                <small class="form-text text-muted" id="titleCountAdd">0 / 25</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Descripción</label>
+                                <textarea class="form-control" name="description" id="txtDescriptionAdd" rows="4" maxlength="200" required></textarea>
+                                <small class="form-text text-muted" id="charCountAdd">0 / 200</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Condición</label>
+                                <select name="state" class="form-select" required>
+                                    <option value="">Seleccione una condición</option>
+                                    <option value="Nuevo">Nuevo</option>
+                                    <option value="Semi_nuevo">Semi-nuevo</option>
+                                    <option value="Reparado">Reparado</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Foto del producto</label>
+                                <input type="file" name="photo" class="form-control" accept="image/*" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Categoría del producto</label>
+                                <select name="category" class="form-select" required>
+                                    <option value="">Seleccione una categoría</option>
+                                    <option th:each="c : ${T(com.apirip.trukeamonolito.product.domain.ProductCategory).values()}"
+                                            th:value="${c}" th:text="${c}"></option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Categorías de interés (1 a 3)</label>
+                                <div class="border rounded p-2" style="max-height:300px;overflow-y:auto;">
+                                    <div class="form-check" th:each="c : ${T(com.apirip.trukeamonolito.product.domain.ProductCategory).values()}">
+                                        <input class="form-check-input preferences-check" type="checkbox" name="preferences"
+                                               th:id="|prefAdd_${c}|" th:value="${c}">
+                                        <label class="form-check-label" th:for="|prefAdd_${c}|" th:text="${c}">Cat</label>
+                                    </div>
+                                </div>
+                                <div id="preferencesErrorAdd" class="alert alert-danger mt-2 py-2 px-3 d-none">
+                                    Selecciona entre 1 y 3 categorías de interés.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-outline-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- /Modal NUEVO -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('open') === 'new') {
+            const modal = new bootstrap.Modal(document.getElementById('NEW_PRODUCT'));
+            modal.show();
+        }
+    });
+</script>
+<script>
+    // ---------- Helpers de contadores ----------
+    function attachCounter(inputEl, counterEl, max) {
+        if (!inputEl || !counterEl) return;
+        const update = () => {
+            const len = inputEl.value.length;
+            counterEl.textContent = len + ' / ' + max;
+            counterEl.classList.toggle('text-danger', len > max);
+            inputEl.classList.toggle('is-invalid', len > max);
+        };
+        inputEl.addEventListener('input', update);
+        update();
+    }
+    function enforcePrefs(box, alertDiv) {
+        const checks = box.querySelectorAll('input[type="checkbox"]');
+        const validate = () => {
+            const selected = Array.from(checks).filter(c => c.checked);
+            const ok = selected.length >= 1 && selected.length <= 3;
+            alertDiv?.classList.toggle('d-none', ok);
+        };
+        checks.forEach(c => c.addEventListener('change', () => {
+            const selected = Array.from(checks).filter(cb => cb.checked);
+            if (selected.length > 3) {
+                // desmarcar el último que superó el límite
+                c.checked = false;
+            }
+            validate();
+        }));
+        validate();
+    }
+
+    // ---------- Nuevo producto ----------
+    const addTitle = document.getElementById('txtTitleAdd');
+    const addTitleCount = document.getElementById('titleCountAdd');
+    attachCounter(addTitle, addTitleCount, 25);
+
+    const addDesc = document.getElementById('txtDescriptionAdd');
+    const addDescCount = document.getElementById('charCountAdd');
+    attachCounter(addDesc, addDescCount, 200);
+
+    const addPrefsBox = document.querySelector('#NEW_PRODUCT .border.rounded');
+    const addPrefsAlert = document.getElementById('preferencesErrorAdd');
+    if (addPrefsBox) enforcePrefs(addPrefsBox, addPrefsAlert);
+
+    // ---------- Editar (varios modales) ----------
+    document.querySelectorAll('.edit-modal').forEach((modal) => {
+        const titleInput = modal.querySelector('.edit-title');
+        const titleCount = modal.querySelector('.edit-title-count');
+        attachCounter(titleInput, titleCount, 25);
+
+        const descInput = modal.querySelector('.edit-desc');
+        const descCount = modal.querySelector('.edit-desc-count');
+        attachCounter(descInput, descCount, 200);
+
+        const prefsBox = modal.querySelector('.pref-box');
+        const prefsAlert = modal.querySelector('.pref-alert');
+        if (prefsBox) enforcePrefs(prefsBox, prefsAlert);
+
+        // Validación de foto en editar:
+        // No es obligatoria si hay existingPhoto; si no hay, exigir archivo
+        const form = modal.querySelector('form.edit-form');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                const existing = form.querySelector('input[name="existingPhoto"]')?.value || '';
+                const file = form.querySelector('.edit-photo')?.files?.length || 0;
+                if (!existing && file === 0) {
+                    e.preventDefault();
+                    alert('Debes adjuntar una imagen del producto o mantener la existente.');
+                }
+                // Chequeo rápido de longitud (defensivo)
+                if (titleInput && titleInput.value.length > 25) { e.preventDefault(); alert('El título no debe superar 25 caracteres.'); }
+                if (descInput && descInput.value.length > 200) { e.preventDefault(); alert('La descripción no debe superar 200 caracteres.'); }
+            });
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Fragmento de alerta -->
+<div th:fragment="alert"
+     th:with="
+       msg=${session.message != null ? session.message : message},
+       type=${session.messageType != null ? session.messageType : messageType},
+       icon='fa-circle-info'"
+     th:if="${msg != null}">
+
+    <!-- Selección del icono -->
+    <th:block th:switch="${type}">
+        <th:block th:case="'success'" th:with="icon='fa-circle-check'"></th:block>
+        <th:block th:case="'warning'" th:with="icon='fa-triangle-exclamation'"></th:block>
+        <th:block th:case="*"
+                  th:with="icon=${(type=='danger' or type=='error') ? 'fa-circle-xmark' : 'fa-circle-info'}"></th:block>
+    </th:block>
+
+    <!-- Estructura visual idéntica -->
+    <div class="alert alert-dismissible fade show text-center d-flex justify-content-center align-items-center gap-2"
+         th:classappend="' alert-' + ${type}" role="alert">
+        <i class="fa-solid" th:classappend="' ' + ${icon} + ' me-2'"></i>
+        <span th:text="${msg}">Mensaje</span>
+        <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="alert"></button>
+    </div>
+
+    <script>
+        // Auto-cierre a los 2s
+        setTimeout(()=>{
+            const a=document.querySelector('.alert-dismissible');
+            if(a){ bootstrap.Alert.getOrCreateInstance(a).close(); }
+        },2000);
+    </script>
+</div>
+
+</body>
+</html>

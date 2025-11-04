@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Fragmento de barra de búsqueda -->
+<form th:fragment="searchbar(action, value, placeholder)"
+      class="row gx-2 align-items-center mb-3"
+      method="get"
+      th:action="${action}">
+
+  <div class="col-12 col-md-6">
+    <input type="text" id="title" name="title" class="form-control"
+           th:value="${value != null ? value : ''}"
+           th:placeholder="${placeholder != null ? placeholder : 'Ej. Calculadora, Escritorio...'}"
+           style="min-width: 300px;">
+  </div>
+
+  <div class="col-auto">
+    <button type="submit" class="btn btn-outline-dark">
+      <i class="fa-solid fa-search me-1"></i> Buscar
+    </button>
+  </div>
+</form>
+
+</body>
+</html>

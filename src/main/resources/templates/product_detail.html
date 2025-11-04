@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+<!-- Navbar -->
+<th:block th:replace="~{navbar :: navbar}"></th:block>
+
+<main class="container my-4">
+    <!--  Feedback -->
+    <th:block th:replace="~{alert :: alert}"></th:block>
+
+    <div class="row">
+        <!-- PRODUCT AVAILABLE Section -->
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="mb-0" th:text="${productDetail.title}">Título</h1>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-md-11 mb-3">
+                    <div class="card border-0 rounded-3" style="height: 100%;">
+                        <div class="card-body p-4 d-flex" style="gap: 10rem;">
+                            <!-- Texto ocupa el espacio restante -->
+                            <div class="flex-grow-1 pe-3">
+                                <h5 class="text-dark fw-bold mb-3">Datos del producto</h5>
+
+                                <p class="card-text text-secondary small mb-4">
+                                    <i class="fa-solid fa-align-left me-2"></i>
+                                    <strong>Detalles:</strong>
+                                    <span th:text="${productDetail.description}">Descripción</span>
+                                </p>
+
+                                <p class="card-text text-secondary small mb-4">
+                                    <i class="fa-solid fa-layer-group me-2"></i>
+                                    <strong>Condición:</strong>
+                                    <span th:text="${productDetail.state}">Estado</span>
+                                </p>
+
+                                <p class="card-text text-secondary small mb-4">
+                                    <i class="fa-solid fa-tags me-2"></i>
+                                    <strong>Categoría:</strong>
+                                    <span th:text="${productDetail.category}">Categoría</span>
+                                </p>
+
+                                <p class="card-text text-secondary small mb-4">
+                                    <i class="fa-solid fa-calendar me-2"></i>
+                                    <strong>Fecha Publicación:</strong>
+                                    <span th:text="${#temporals.format(productDetail.datePublication, 'dd/MM/yyyy')}">01/01/2025</span>
+                                </p>
+
+                                <p class="card-text text-secondary small mb-4">
+                                    <i class="fa-solid fa-arrows-rotate me-2"></i>
+                                    <strong>Preferencias de intercambio:</strong>
+                                    <span th:if="${productDetail.preferences != null}">
+                    <span th:each="pref, st : ${productDetail.preferences}">
+                      <span th:text="${pref}">Pref</span><span th:if="${!st.last}">, </span>
+                    </span>
+                  </span>
+                                </p>
+
+                                <!-- Datos del estudiante -->
+                                <hr class="my-4">
+                                <h5 class="text-dark fw-bold mb-3">Datos del propietario</h5>
+
+                                <!-- Mostrar datos del propietario solo si hay sesión -->
+                                <div th:if="${#request.userPrincipal != null}" class="d-flex flex-column mb-3">
+                                    <p class="card-text text-secondary small">
+                                        <i class="fa-solid fa-user me-2"></i>
+                                        <strong>Nombre:</strong>
+                                        <a class="text-decoration-none"
+                                           th:href="@{/profile/public/{id}(id=${productDetail.student.idStudent})}
+                                + (${#httpServletRequest.requestURI} != null ? ('?from=' + ${#httpServletRequest.requestURI}) : '')">
+                                            <span th:text="${productDetail.student.name}">Nombre</span>
+                                            <span th:text="${productDetail.student.surname}">Apellido</span>
+                                        </a>
+                                    </p>
+                                </div>
+
+                                <div th:if="${#request.userPrincipal == null}"
+                                     class="alert alert-warning d-flex align-items-center small" role="alert">
+                                    <i class="fa-solid fa-user-lock me-2"></i>
+                                    <span>Información del propietario no disponible hasta iniciar sesión.</span>
+                                </div>
+
+                                <hr class="my-4">
+                                <a class="btn btn-outline-dark w-100 text-center mt-auto"
+                                   th:href="@{/offers/prepare(targetProductId=${productDetail.idProduct})}">
+                                    <i class="fa-solid fa-handshake me-2"></i> Elegir productos
+                                </a>
+                            </div>
+
+                            <!-- Imagen al lado derecho, ocupa tamaño completo de la card -->
+                            <div style="width: 50%; max-width: 500px;">
+                                <img th:if="${productDetail.photo != null and !#strings.isEmpty(productDetail.photo)}"
+                                     th:src="@{/product-images/{file}(file=${productDetail.photo})}"
+                                     alt="Product Photo"
+                                     class="img-fluid h-100"
+                                     style="object-fit: cover; border-radius: 0.25rem;">
+                            </div>
+
+                        </div><!-- /.card-body -->
+                    </div><!-- /.card -->
+                </div><!-- /.col -->
+            </div><!-- /.row -->
+        </div>
+    </div>
+</main>
+
+<!-- Modal para mensajes informativos y de error -->
+<div class="modal modal-info" id="infoModal" tabindex="-1"
+     aria-labelledby="infoModalLabel" aria-hidden="true"
+     th:if="${message != null}">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body"
+                 th:classappend="${messageType} == 'info' ? ' info' : ' error'">
+                <i class="fas"
+                   th:classappend="${messageType} == 'info' ? ' fa-info-circle text-info' : ' fa-exclamation-circle text-danger'"></i>
+                <span th:text="${message}">Mensaje</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:inline="javascript">
+    /* Mostrar modal informativo si hay mensaje */
+    const message = /*[[${message}]]*/ null;
+    if (message) {
+        const infoModalElement = document.getElementById("infoModal");
+        if (infoModalElement) {
+            const infoModal = new bootstrap.Modal(infoModalElement, {
+                backdrop: false,
+                keyboard: false
+            });
+            infoModal.show();
+            setTimeout(() => infoModal.hide(), 1000);
+        }
+    }
+
+    // Cierra automáticamente la alerta después de 2 segundos
+    setTimeout(() => {
+        const alert = document.querySelector('.alert-dismissible');
+        if (alert) {
+            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+            bsAlert.close();
+        }
+    }, 2000);
+</script>
+</body>
+</html>

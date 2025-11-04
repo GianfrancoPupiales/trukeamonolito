@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Ofertas Enviadas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+<!-- Navbar -->
+<th:block th:replace="fragments/navbar :: navbar"></th:block>
+
+<main class="container my-4">
+    <h1 class="mb-0 text-center">Ofertas Enviadas</h1>
+
+    <!-- Feedback -->
+    <th:block th:replace="fragments/alert :: alert"></th:block>
+
+    <div th:if="${sentOffers == null or #lists.isEmpty(sentOffers)}" class="alert alert-info text-center">
+        No has enviado ofertas recientemente.
+    </div>
+
+    <div class="row row-cols-1 g-4" th:if="${sentOffers != null and !#lists.isEmpty(sentOffers)}">
+        <div class="col" th:each="offer : ${sentOffers}">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <h5 class="fw-bold text-dark mb-3">
+                        <i class="fa-solid fa-paper-plane me-2"></i>
+                        Propuesta enviada a:
+                        <a class="text-decoration-none"
+                           th:href="@{/profile/public/{id}(id=${offer.productToOffer.student.idStudent})}">
+                            <span th:text="${offer.productToOffer.student.name}">Nombre</span>
+                            <span th:text="${offer.productToOffer.student.surname}">Apellido</span>
+                        </a>
+                    </h5>
+
+                    <div class="row">
+                        <!-- Col 1: productos ofrecidos -->
+                        <div class="col-md-5">
+                            <h6 class="fw-bold text-secondary mb-3">Tus productos ofrecidos</h6>
+                            <div th:each="prod : ${offer.offeredProducts}"
+                                 class="card border-1 rounded-3 mb-2 px-3 py-2">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <label class="fw-bold" th:text="${prod.title}">Producto</label><br/>
+                                        <span class="text-secondary small">
+                      <i class="fa-solid fa-tags me-1"></i>
+                      <span th:text="${prod.category}">Categoría</span>
+                      (<span th:text="${prod.state}">Estado</span>)
+                    </span><br/>
+                                        <span class="text-muted small" th:text="${prod.description}">Descripción</span>
+                                    </div>
+                                    <div style="width: 80px; height: 80px;">
+                                        <img th:if="${prod.photo != null and !#strings.isEmpty(prod.photo)}"
+                                             th:src="@{/product-images/{file}(file=${prod.photo})}"
+                                             class="img-fluid rounded"
+                                             style="object-fit: cover; width: 100%; height: 100%;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Col 2: producto solicitado -->
+                        <div class="col-md-5">
+                            <h6 class="fw-bold text-secondary mb-3">Producto solicitado</h6>
+                            <div class="card border-1 rounded-3 px-3 py-2">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <label class="fw-bold" th:text="${offer.productToOffer.title}">Título</label><br/>
+                                        <span class="text-secondary small">
+                      <i class="fa-solid fa-tags me-1"></i>
+                      <span th:text="${offer.productToOffer.category}">Categoría</span>
+                      (<span th:text="${offer.productToOffer.state}">Estado</span>)
+                    </span><br/>
+                                        <span class="text-muted small" th:text="${offer.productToOffer.description}">Descripción</span>
+                                    </div>
+                                    <div style="width: 80px; height: 80px;">
+                                        <img th:if="${offer.productToOffer.photo != null and !#strings.isEmpty(offer.productToOffer.photo)}"
+                                             th:src="@{/product-images/{file}(file=${offer.productToOffer.photo})}"
+                                             class="img-fluid rounded"
+                                             style="object-fit: cover; width: 100%; height: 100%;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Col 3: botón cancelar -->
+                        <div class="col-md-2 d-flex align-items-center justify-content-center">
+                            <button type="button"
+                                    class="btn btn-outline-danger w-100"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#confirmModal"
+                                    th:attr="data-offer-id=${offer.idOffer},data-product-title=${offer.productToOffer.title}">
+                                <i class="fa-solid fa-ban me-2"></i> Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Modal Confirmación -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form th:action="@{/offers/respond}" method="post">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header bg-danger text-white border-0 rounded-top-4">
+                    <h5 class="modal-title w-100 text-center">
+                        <i class="fa-solid fa-triangle-exclamation me-2"></i>Confirmar cancelación
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="mb-2 fs-6">¿Estás seguro de que deseas <strong>cancelar esta propuesta</strong>?</p>
+                    <p class="text-muted mb-0">Estás intentando cancelar una oferta sobre el producto:</p>
+                    <p class="fw-bold text-danger mb-0 mt-1" id="modalProductTitle"></p>
+                </div>
+                <div class="modal-footer border-0 d-flex justify-content-center gap-3 pb-4">
+                    <input type="hidden" name="offerId" id="modalOfferId"/>
+                    <input type="hidden" name="action" value="cancel"/>
+
+                    <button type="button" class="btn btn-outline-dark px-4" data-bs-dismiss="modal">
+                        <i class="fa-solid fa-circle-xmark me-2"></i> Cerrar
+                    </button>
+
+                    <button type="submit" class="btn btn-outline-danger px-4">
+                        <i class="fa-solid fa-ban me-2"></i> Sí, Cancelar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const confirmModal = document.getElementById('confirmModal');
+    confirmModal.addEventListener('show.bs.modal', event => {
+        const button = event.relatedTarget;
+        const offerId = button.getAttribute('data-offer-id');
+        const productTitle = button.getAttribute('data-product-title');
+        document.getElementById('modalOfferId').value = offerId;
+        document.getElementById('modalProductTitle').textContent = productTitle;
+    });
+
+    // Cerrar alertas automáticamente
+    setTimeout(() => {
+        const alert = document.querySelector('.alert-dismissible');
+        if (alert) {
+            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+            bsAlert.close();
+        }
+    }, 2000);
+</script>
+</body>
+</html>

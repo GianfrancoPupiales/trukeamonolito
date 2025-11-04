@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Historial de Trueques</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navbar -->
+<th:block th:replace="fragments/navbar :: navbar"></th:block>
+
+<main class="container my-4">
+    <h1 class="mb-4 text-center">Historial de Trueques Completados</h1>
+
+    <!-- Feedback -->
+    <th:block th:replace="fragments/alert :: alert"></th:block>
+
+    <!-- Sin historial -->
+    <div th:if="${tradeHistory == null or #lists.isEmpty(tradeHistory)}"
+         class="alert alert-info text-center">
+        Aún no has completado ningún trueque.
+    </div>
+
+    <!-- Con historial -->
+    <div class="row row-cols-1 g-4"
+         th:if="${tradeHistory != null and !#lists.isEmpty(tradeHistory)}">
+        <div class="col" th:each="offer,iter : ${tradeHistory}"
+             th:with="
+           yoSoyOfertante=${offer.studentWhoOffered.idStudent} == ${session.student.idStudent},
+           idOtro=${yoSoyOfertante} ? ${offer.productToOffer.student.idStudent} : ${offer.studentWhoOffered.idStudent},
+           nombreOtro=${yoSoyOfertante} ? ${offer.productToOffer.student.name} : ${offer.studentWhoOffered.name},
+           apellidoOtro=${yoSoyOfertante} ? ${offer.productToOffer.student.surname} : ${offer.studentWhoOffered.surname}
+         ">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-1">
+                            <i class="fa-solid fa-handshake-angle me-2"></i>
+                            Trueque con:
+                            <a class="text-decoration-none"
+                               th:href="@{/profile/public(id=${idOtro}, from=${#httpServletRequest.requestURI})}"
+                               th:text="${nombreOtro + ' ' + apellidoOtro}">Nombre Apellido</a>
+                        </h5>
+
+                        <p class="text-muted mb-0 small">
+                            Intercambiaste:
+                            <span th:if="${yoSoyOfertante}">
+                <span th:each="p,i : ${offer.offeredProducts}">
+                  <strong th:text="${p.title}">Producto A</strong><span th:if="${!i.last}">, </span>
+                </span>
+              </span>
+                            <span th:if="${!yoSoyOfertante}">
+                <strong th:text="${offer.productToOffer.title}">Producto B</strong>
+              </span>
+                            <br/>
+                            Y recibiste:
+                            <span th:if="${yoSoyOfertante}">
+                <strong th:text="${offer.productToOffer.title}">Producto C</strong>
+              </span>
+                            <span th:if="${!yoSoyOfertante}">
+                <span th:each="p,j : ${offer.offeredProducts}">
+                  <strong th:text="${p.title}">Producto D</strong><span th:if="${!j.last}">, </span>
+                </span>
+              </span>
+                        </p>
+                    </div>
+
+                    <button class="btn btn-outline-primary btn-sm px-3"
+                            data-bs-toggle="modal"
+                            th:attr="data-bs-target=${'#modal' + iter.index}">
+                        Ver detalles
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Detalles -->
+            <div class="modal fade" th:id="${'modal' + iter.index}" tabindex="-1" aria-hidden="true"
+                 th:with="
+             entregaste=${yoSoyOfertante} ? ${offer.offeredProducts} : ${offer.productToOffer},
+             recibiste=${yoSoyOfertante} ? ${offer.productToOffer} : ${offer.offeredProducts}
+           ">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                    <div class="modal-content rounded-4">
+                        <div class="modal-header">
+                            <h5 class="modal-title"
+                                th:text="${'Detalles del Trueque con ' + (yoSoyOfertante ? offer.productToOffer.student.name : offer.studentWhoOffered.name) + ' ' + (yoSoyOfertante ? offer.productToOffer.student.surname : offer.studentWhoOffered.surname)}">
+                                Detalles del Trueque
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="row">
+                                <!-- Entregaste -->
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold text-secondary mb-3">Productos que entregaste</h6>
+
+                                    <!-- Si ofreciste: lista -->
+                                    <div th:if="${yoSoyOfertante}">
+                                        <div class="card border-1 rounded-3 mb-3 px-3 py-2" th:each="p : ${entregaste}">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div class="me-3" style="flex:1">
+                                                    <label class="fw-bold mb-1" th:text="${p.title}">Título</label>
+                                                    <div class="text-secondary small mb-1">
+                                                        <i class="fa-solid fa-tags me-1"></i>
+                                                        <span th:text="${p.category}">Categoría</span>
+                                                        (<span th:text="${p.state}">Estado</span>)
+                                                    </div>
+                                                    <div class="text-muted small" th:text="${p.description}">Descripción</div>
+                                                </div>
+                                                <div style="width: 100px; height: 100px;">
+                                                    <img th:if="${p.photo != null and !#strings.isEmpty(p.photo)}"
+                                                         th:src="@{/product-images/{file}(file=${p.photo})}"
+                                                         alt="Foto del producto"
+                                                         class="img-fluid rounded"
+                                                         style="object-fit: cover; width: 100%; height: 100%;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Si no ofreciste: único -->
+                                    <div th:if="${!yoSoyOfertante}">
+                                        <div class="card border-1 rounded-3 mb-3 px-3 py-2">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div class="me-3" style="flex:1">
+                                                    <label class="fw-bold mb-1" th:text="${entregaste.title}">Título</label>
+                                                    <div class="text-secondary small mb-1">
+                                                        <i class="fa-solid fa-tags me-1"></i>
+                                                        <span th:text="${entregaste.category}">Categoría</span>
+                                                        (<span th:text="${entregaste.state}">Estado</span>)
+                                                    </div>
+                                                    <div class="text-muted small" th:text="${entregaste.description}">Descripción</div>
+                                                </div>
+                                                <div style="width: 100px; height: 100px;">
+                                                    <img th:if="${entregaste.photo != null and !#strings.isEmpty(entregaste.photo)}"
+                                                         th:src="@{/product-images/{file}(file=${entregaste.photo})}"
+                                                         alt="Foto del producto"
+                                                         class="img-fluid rounded"
+                                                         style="object-fit: cover; width: 100%; height: 100%;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Recibiste -->
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold text-secondary mb-3">Productos que recibiste</h6>
+
+                                    <!-- Si ofreciste: único -->
+                                    <div th:if="${yoSoyOfertante}">
+                                        <div class="card border-1 rounded-3 mb-3 px-3 py-2">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div class="me-3" style="flex:1">
+                                                    <label class="fw-bold mb-1" th:text="${recibiste.title}">Título</label>
+                                                    <div class="text-secondary small mb-1">
+                                                        <i class="fa-solid fa-tags me-1"></i>
+                                                        <span th:text="${recibiste.category}">Categoría</span>
+                                                        (<span th:text="${recibiste.state}">Estado</span>)
+                                                    </div>
+                                                    <div class="text-muted small" th:text="${recibiste.description}">Descripción</div>
+                                                </div>
+                                                <div style="width: 100px; height: 100px;">
+                                                    <img th:if="${recibiste.photo != null and !#strings.isEmpty(recibiste.photo)}"
+                                                         th:src="@{/product-images/{file}(file=${recibiste.photo})}"
+                                                         alt="Foto del producto"
+                                                         class="img-fluid rounded"
+                                                         style="object-fit: cover; width: 100%; height: 100%;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Si no ofreciste: lista -->
+                                    <div th:if="${!yoSoyOfertante}">
+                                        <div class="card border-1 rounded-3 mb-3 px-3 py-2" th:each="p : ${recibiste}">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div class="me-3" style="flex:1">
+                                                    <label class="fw-bold mb-1" th:text="${p.title}">Título</label>
+                                                    <div class="text-secondary small mb-1">
+                                                        <i class="fa-solid fa-tags me-1"></i>
+                                                        <span th:text="${p.category}">Categoría</span>
+                                                        (<span th:text="${p.state}">Estado</span>)
+                                                    </div>
+                                                    <div class="text-muted small" th:text="${p.description}">Descripción</div>
+                                                </div>
+                                                <div style="width: 100px; height: 100px;">
+                                                    <img th:if="${p.photo != null and !#strings.isEmpty(p.photo)}"
+                                                         th:src="@{/product-images/{file}(file=${p.photo})}"
+                                                         alt="Foto del producto"
+                                                         class="img-fluid rounded"
+                                                         style="object-fit: cover; width: 100%; height: 100%;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div> <!-- /recibiste -->
+                            </div> <!-- /row -->
+                        </div> <!-- /modal-body -->
+                    </div>
+                </div>
+            </div> <!-- /modal -->
+        </div> <!-- /col -->
+    </div> <!-- /row -->
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Cierra automáticamente la alerta después de 2 segundos
+    setTimeout(() => {
+        const alert = document.querySelector('.alert-dismissible');
+        if (alert) bootstrap.Alert.getOrCreateInstance(alert).close();
+    }, 2000);
+</script>
+</body>
+</html>

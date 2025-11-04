@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio - Trukea</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+<!--  Navbar -->
+<th:block th:replace="~{navbar :: navbar}"></th:block>
+
+<main class="container my-4">
+
+    <!--  Feedback -->
+    <th:block th:replace="~{alert :: alert}"></th:block>
+
+    <!--  Encabezado -->
+    <div class="text-center mb-4">
+        <h1 class="fw-bold text-dark display-5">Trukea</h1>
+        <p class="text-muted small fst-italic">
+            Publica, encuentra e intercambia productos con otros estudiantes de forma segura
+        </p>
+    </div>
+
+    <!--  Búsqueda + Filtro -->
+    <div class="row gx-2 align-items-center mb-4">
+        <div class="col-md-8">
+            <th:block th:replace="~{search_bar :: searchbar(
+              @{/products/search},
+              ${searchTerm},
+              'Ej. Calculadora, Escritorio...')}"></th:block>
+        </div>
+        <div class="col-md-4">
+            <th:block th:replace="~{category_selector :: categoryselector(
+              @{/products/catalog},
+              ${selectedCategory})}"></th:block>
+        </div>
+    </div>
+
+    <!--  Lista de productos -->
+    <div class="row">
+        <div class="col-md-6 mb-3" th:each="product : ${products}">
+            <div class="card border-0 rounded-3" style="height: 100%;">
+                <div class="card-body p-4 d-flex">
+
+                    <!-- Texto -->
+                    <div class="pe-3"
+                         style="width: 50%; display: flex; flex-direction: column; height: 300px; overflow: hidden;">
+
+                        <h3 class="card-title fw-bold" th:text="${product.title}">Título</h3>
+
+                        <!-- Nombre -->
+                        <p class="card-text text-secondary small mb-2" sec:authorize="isAuthenticated()">
+                            <i class="fa-solid fa-user me-2"></i>
+                            <a th:href="@{'/profile/' + ${product.student.idStudent}}"
+                               class="text-decoration-none">
+                                <span th:text="${product.student.name + ' ' + product.student.surname}">Usuario</span>
+                            </a>
+                        </p>
+
+                        <p class="card-text text-secondary small mb-2" sec:authorize="isAnonymous()">
+                            <i class="fa-solid fa-user me-2"></i>No disponible hasta iniciar sesión
+                        </p>
+
+                        <!-- Descripción -->
+                        <p class="card-text text-secondary small mb-2"
+                           style="overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.1;">
+                            <i class="fa-solid fa-align-left me-2"></i>
+                            <span th:text="${product.description}">Descripción</span>
+                        </p>
+
+
+                        <!-- Estado -->
+                        <p class="card-text text-secondary small mb-2">
+                            <i class="fa-solid fa-layer-group me-2"></i>
+                            <span th:text="${product.state}">Estado</span>
+                        </p>
+
+                        <!-- Categoría -->
+                        <p class="card-text text-secondary small mb-2">
+                            <i class="fa-solid fa-tags me-2"></i>
+                            <span th:text="${product.category}">Categoría</span>
+                        </p>
+
+                        <!-- Fecha -->
+                        <p class="card-text text-secondary small mb-2">
+                            <i class="fa-solid fa-calendar me-2"></i>
+                            <span th:text="${#temporals.format(product.datePublication, 'dd/MM/yyyy')}">01/01/2025</span>
+                        </p>
+
+                        <!-- Preferencias -->
+                        <p class="card-text text-secondary small mb-2" th:if="${product.preferences}">
+                            <i class="fa-solid fa-arrows-rotate me-2"></i>Intercambiar por:
+                            <span th:each="pref, stat : ${product.preferences}"
+                                  th:text="${pref + (stat.last ? '' : ', ')}"></span>
+                        </p>
+
+                        <!-- 🔁 Botón hacer oferta -->
+                        <a class="btn btn-outline-dark w-100 text-center mt-auto"
+                           th:href="@{'/offers/new?productId=' + ${product.idProduct}}">
+                            <i class="fa-solid fa-handshake me-2"></i> Hacer oferta
+                        </a>
+                    </div>
+
+                    <!-- Imagen -->
+                    <div style="width: 50%; max-width: 250px; height: 300px;">
+                        <img th:if="${product.photo != null}"
+                             th:src="@{/product-images/{photo}(photo=${product.photo})}"
+                             alt="Imagen del producto"
+                             class="img-fluid h-100"
+                             style="object-fit: cover; border-radius: 0.25rem;">
+                        <img th:if="${product.photo == null}"
+                             src="/images/no-image.png"
+                             alt="Sin imagen"
+                             class="img-fluid h-100"
+                             style="object-fit: cover; border-radius: 0.25rem; opacity: 0.6;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sin productos -->
+        <div class="alert alert-info text-center" th:if="${#lists.isEmpty(products)}">
+            No hay productos disponibles en este momento.
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    setTimeout(() => {
+        const alert = document.querySelector('.alert-dismissible');
+        if (alert) {
+            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+            bsAlert.close();
+        }
+    }, 2000);
+</script>
+</body>
+</html>

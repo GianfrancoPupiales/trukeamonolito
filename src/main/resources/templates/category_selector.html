@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Fragmento selector de categorías -->
+<form th:fragment="categoryselector(action, selected)"
+      class="row gx-2 align-items-center mb-3"
+      method="get"
+      th:action="${action}"
+      id="categoryForm">
+
+    <div class="col-12 col-md-6">
+        <select name="category" class="form-select" id="categorySelect" style="min-width: 200px;">
+            <option value=""
+                    th:selected="${selected == null or selected == ''}">
+                Todas las categorías
+            </option>
+            <option value="Libros" th:selected="${selected == 'Libros'}">Libros</option>
+            <option value="Papelería" th:selected="${selected == 'Papelería'}">Papelería</option>
+            <option value="Electrónicos" th:selected="${selected == 'Electrónicos'}">Electrónicos</option>
+            <option value="Mobiliario" th:selected="${selected == 'Mobiliario'}">Mobiliario</option>
+            <option value="Ropa" th:selected="${selected == 'Ropa'}">Ropa</option>
+            <option value="Servicios" th:selected="${selected == 'Servicios'}">Servicios</option>
+            <option value="Entretenimiento" th:selected="${selected == 'Entretenimiento'}">Entretenimiento</option>
+            <option value="Alimentación" th:selected="${selected == 'Alimentación'}">Alimentación</option>
+            <option value="Transporte" th:selected="${selected == 'Transporte'}">Transporte</option>
+        </select>
+    </div>
+
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-dark">
+            <i class="fa-solid fa-filter me-1"></i> Filtrar
+        </button>
+    </div>
+</form>
+
+<!-- Script para redirigir a /products/catalog cuando se elige “Todas” -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const select = document.getElementById("categorySelect");
+        const form = document.getElementById("categoryForm");
+
+        form.addEventListener("submit", function(e) {
+            const value = select.value.trim();
+            if (value === "") {
+                e.preventDefault(); // evita el envío normal
+                window.location.href = "/products/catalog"; // redirige al catálogo completo
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
