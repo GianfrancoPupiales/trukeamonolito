@@ -85,7 +85,6 @@ public class ProfileController {
                 .email(form.email())
                 .password(password)              // StudentService encripta si viene no vacío
                 .name(form.name())
-                .surname(form.surname())
                 .phone(form.phone())
                 .photo(photoPath)                // si es null, el service conserva la anterior
                 .build();

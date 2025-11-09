@@ -64,7 +64,6 @@ public class StudentService {
         Student publicProfile = Student.builder()
                 .idStudent(student.getIdStudent())
                 .name(student.getName())
-                .surname(student.getSurname())
                 .email(student.getEmail())
                 .photo(student.getPhoto())
                 .uniqueCode(student.getUniqueCode())

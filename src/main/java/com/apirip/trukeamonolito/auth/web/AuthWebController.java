@@ -65,7 +65,6 @@ public class AuthWebController {
                 .email(form.email())
                 .password(form.password())
                 .name(form.fullName())
-                .surname("")
                 .uniqueCode(form.uniqueCode())
                 .phone(form.phone())
                 .photo(photoFilename) // guarda solo el filename

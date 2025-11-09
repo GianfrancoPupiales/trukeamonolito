@@ -33,7 +33,6 @@ public class Student implements Serializable {
     private String password;
 
     private String name;
-    private String surname;
     private String phone;
     private String photo;
 
