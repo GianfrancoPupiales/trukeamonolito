@@ -1,6 +1,7 @@
 package com.apirip.trukeamonolito.config;
 
 import com.apirip.trukeamonolito.auth.service.AuthUserDetailsService;
+import com.apirip.trukeamonolito.auth.web.LoginSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -27,14 +28,15 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain filter(HttpSecurity http) throws Exception {
+    SecurityFilterChain filter(HttpSecurity http, LoginSuccessHandler successHandler) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/","/products/catalog", "/signin", "/signup", "/forgot",
                                 "/css/**", "/js/**", "/images/**", "/webjars/**", "/h2/**","/product-images/**",
                                 "/student-images/**", "/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/products/*/offers").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/offers/prepare/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/offers/propose/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .formLogin(login -> login
@@ -42,6 +44,7 @@ public class SecurityConfig {
                         .loginProcessingUrl("/login")         // lo procesa Spring Security (no controller)
                         .usernameParameter("username")        // <input name="username">
                         .passwordParameter("password")        // <input name="password">
+                        .successHandler(successHandler)
                         .defaultSuccessUrl("/products/catalog", true)
                         .failureUrl("/signin?error")          // feedback si falla
                         .permitAll()
@@ -49,6 +52,8 @@ public class SecurityConfig {
                 .logout(l -> l
                         .logoutUrl("/logout")                 // por defecto POST
                         .logoutSuccessUrl("/signin?logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/h2/**"))

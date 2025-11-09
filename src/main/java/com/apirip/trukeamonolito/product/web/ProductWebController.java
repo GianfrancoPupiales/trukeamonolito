@@ -81,7 +81,7 @@ public class ProductWebController {
         var items = service.searchByCategory(cat, exclude);
         model.addAttribute("products", items);
         model.addAttribute("selectedCategory", category);
-        return "home"; // vista de catálogo
+        return "/products/catalog";
     }
 
     @GetMapping("/search")
@@ -96,7 +96,7 @@ public class ProductWebController {
         var found = service.searchByTitle(title.trim(), exclude);
         model.addAttribute("products", found);
         model.addAttribute("searchTerm", title.trim());
-        return "home";
+        return "/products/catalog";
     }
 
     private ProductCategory parse(String name) {
