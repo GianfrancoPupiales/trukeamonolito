@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -78,14 +78,14 @@
                                 <hr class="my-4">
                                 <h5 class="text-dark fw-bold mb-3">Datos del propietario</h5>
 
-                                <p class="card-text text-secondary small" th:if="${#request.userPrincipal != null}">
+                                <p class="card-text text-secondary small" sec:authorize="isAuthenticated()">
                                     <i class="fa-solid fa-user me-2"></i>
                                     <strong>Nombre:</strong>
                                     <span th:text="${productDetail.student.name}">Nombre</span>
                                 </p>
 
                                 <div class="alert alert-warning d-flex align-items-center small" role="alert"
-                                     th:if="${#request.userPrincipal == null}">
+                                     sec:authorize="isAnonymous()">
                                     <i class="fa-solid fa-user-lock me-2"></i>
                                     <span>Información del propietario no disponible hasta iniciar sesión.</span>
                                 </div>

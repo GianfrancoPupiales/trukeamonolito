@@ -45,5 +45,8 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     List<Product> findByCategoryForCatalog(@Param("category") ProductCategory category,
                                            @Param("excludeId") Integer excludeId);
 
+    @EntityGraph(attributePaths = {"student", "preferences"})
+    @Query("SELECT p FROM Product p WHERE p.idProduct = :id")
+    Product findByIdWithStudent(@Param("id") int id);
 
 }

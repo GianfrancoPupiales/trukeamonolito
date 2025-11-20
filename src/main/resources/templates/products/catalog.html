@@ -98,10 +98,10 @@
                                   th:text="${pref + (stat.last ? '' : ', ')}"></span>
                         </p>
 
-                        <!-- 🔁 Botón hacer oferta -->
+                        <!-- 🔁 Botón ver detalle -->
                         <a class="btn btn-outline-dark w-100 text-center mt-auto"
-                           th:href="@{'/offers/new?productId=' + ${product.idProduct}}">
-                            <i class="fa-solid fa-handshake me-2"></i> Hacer oferta
+                           th:href="@{/products/{id}(id=${product.idProduct})}">
+                            <i class="fa-solid fa-eye me-2"></i> Ver detalle
                         </a>
                     </div>
 

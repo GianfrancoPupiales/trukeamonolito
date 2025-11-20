@@ -30,7 +30,7 @@ public class OfferWebController {
     /** Equivalente a prepare: muestra detalle del target y filtra mis productos según preferencias */
     @GetMapping("/prepare/{targetProductId}")
     public String prepare(@PathVariable int targetProductId, Authentication auth, Model model){
-        var target = products.findProductById(targetProductId);
+        var target = products.findProductByIdWithStudent(targetProductId);
         var currentId = me(auth);
 
         var prefs = target.getPreferences();

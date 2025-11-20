@@ -40,8 +40,8 @@
                             <i class="fa-solid fa-handshake-angle me-2"></i>
                             Trueque con:
                             <a class="text-decoration-none"
-                               th:href="@{/profile/public(id=${idOtro}, from=${#httpServletRequest.requestURI})}"
-                               th:text="${nombreOtro + ' ' + apellidoOtro}">Nombre Apellido</a>
+                               th:href="@{/profile/public/{id}(id=${idOtro})}"
+                               th:text="${nombreOtro}">Nombre</a>
                         </h5>
 
                         <p class="text-muted mb-0 small">

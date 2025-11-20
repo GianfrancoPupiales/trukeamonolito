@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -74,18 +74,18 @@
                                 <h5 class="text-dark fw-bold mb-3">Datos del propietario</h5>
 
                                 <!-- Mostrar datos del propietario solo si hay sesión -->
-                                <div th:if="${session.AUTH_USER != null}" class="d-flex flex-column mb-3">
+                                <div sec:authorize="isAuthenticated()" class="d-flex flex-column mb-3">
                                     <p class="card-text text-secondary small">
                                         <i class="fa-solid fa-user me-2"></i>
                                         <strong>Nombre:</strong>
                                         <a class="text-decoration-none"
-                                           th:href="@{/profile/public/{id}(id=${productDetail.student.idStudent}, from=${#httpServletRequest.requestURI})}">
+                                           th:href="@{/profile/public/{id}(id=${productDetail.student.idStudent})}">
                                             <span th:text="${productDetail.student.name}">Nombre</span>
                                         </a>
                                     </p>
                                 </div>
 
-                                <div th:unless="${session.AUTH_USER != null}"
+                                <div sec:authorize="isAnonymous()"
                                      class="alert alert-warning d-flex align-items-center small" role="alert">
                                     <i class="fa-solid fa-user-lock me-2"></i>
                                     <span>Información del propietario no disponible hasta iniciar sesión.</span>
@@ -93,8 +93,8 @@
 
                                 <hr class="my-4">
                                 <a class="btn btn-outline-dark w-100 text-center mt-auto"
-                                   th:href="@{/offers/prepare(targetProductId=${productDetail.idProduct})}">
-                                    <i class="fa-solid fa-handshake me-2"></i> Elegir productos
+                                   th:href="@{/offers/prepare/{id}(id=${productDetail.idProduct})}">
+                                    <i class="fa-solid fa-handshake me-2"></i> Hacer oferta
                                 </a>
                             </div>
 

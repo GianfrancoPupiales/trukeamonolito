@@ -84,6 +84,16 @@ public class ProductWebController {
         return "/products/catalog";
     }
 
+    @GetMapping("/{id}")
+    public String detail(@PathVariable int id, Model model) {
+        var product = service.findProductByIdWithStudent(id);
+        if (product == null) {
+            return "redirect:/products/catalog";
+        }
+        model.addAttribute("productDetail", product);
+        return "product_detail";
+    }
+
     @GetMapping("/search")
     public String searchByTitle(@RequestParam(required = false) String title,
                                 Authentication auth,

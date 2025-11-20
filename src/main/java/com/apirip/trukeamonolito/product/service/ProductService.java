@@ -91,6 +91,11 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    public Product findProductByIdWithStudent(int id) {
+        return products.findByIdWithStudent(id);
+    }
+
+    @Transactional(readOnly = true)
     public List<Product> findAvailableProductsByOwner(int ownerId) {
         return products.findByStudent_IdStudentAndIsAvailableTrue(ownerId);
     }
