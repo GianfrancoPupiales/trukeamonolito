@@ -47,7 +47,6 @@
                             <i class="fa-solid fa-user me-2"></i>
                             <strong>Nombre:</strong>
                             <span th:text="${profile.name}">Nombre</span>
-                            <span th:text="${profile.surname}">Apellido</span>
                         </p>
 
                         <p class="card-text text-secondary small mb-3">
@@ -159,11 +158,6 @@
                 <div class="mb-3">
                     <label class="form-label">Nombre</label>
                     <input type="text" class="form-control" name="name" id="editName" th:value="${profile.name}" required>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Apellido</label>
-                    <input type="text" class="form-control" name="surname" id="editSurname" th:value="${profile.surname}" required>
                 </div>
 
                 <div class="mb-3">

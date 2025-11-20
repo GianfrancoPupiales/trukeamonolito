@@ -55,28 +55,24 @@
 <!-- Navbar -->
 <th:block th:replace="~{navbar :: navbar}"></th:block>
 
-
-<!-- 1) Flash/model messages -->
-<th:block th:replace="~{alert :: alert}"></th:block>
-
-<!-- 2) Security query params mapeados a tu alert -->
-<th:block th:if="${param.error}">
-    <th:block th:with="message='Credenciales inválidas.', messageType='danger'"
-              th:replace="~{alert :: alert}"></th:block>
-</th:block>
-
-<th:block th:if="${param.logout}">
-    <th:block th:with="message='Sesión cerrada correctamente.', messageType='info'"
-              th:replace="~{alert :: alert}"></th:block>
-</th:block>
-
 <main class="d-flex align-items-center justify-content-center" style="min-height:70vh">
     <div class="login-card p-4 shadow rounded-4" style="max-width:420px;width:100%">
         <h2 class="text-center mb-4">TRUKEA</h2>
 
-        <div th:if="${param.error}" class="alert alert-danger">Credenciales inválidas.</div>
-        <div th:if="${param.logout}" class="alert alert-info">Sesión cerrada.</div>
-        <div th:if="${param.registered}" class="alert alert-info">Registro exitoso. Inicia sesión.</div>
+        <!-- Mostrar mensajes flash (como éxito de registro) -->
+        <th:block th:replace="~{alert :: alert}"></th:block>
+
+        <!-- Mensajes de query params de Spring Security -->
+        <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-circle-xmark me-2"></i>
+            Credenciales inválidas.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${param.logout}" class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-circle-info me-2"></i>
+            Sesión cerrada correctamente.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
 
         <form method="post" th:action="@{/login}">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>

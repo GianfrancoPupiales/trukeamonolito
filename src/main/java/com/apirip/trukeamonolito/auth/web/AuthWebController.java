@@ -48,37 +48,43 @@ public class AuthWebController {
             return "redirect:/signup";
         }
 
-        String photoFilename = null;
         try {
+            String photoFilename = null;
             if (photo != null && !photo.isEmpty()) {
                 // guarda en C:/trukeamonolito/uploads/students y retorna SOLO el nombre del archivo
                 photoFilename = storage.saveStudentPhoto(photo);
             }
+
+            Student s = Student.builder()
+                    .email(form.email())
+                    .password(form.password())
+                    .name(form.fullName())
+                    .uniqueCode(form.uniqueCode())
+                    .phone(form.phone())
+                    .photo(photoFilename) // guarda solo el filename
+                    .build();
+
+            if (!students.createStudent(s)) {
+                ra.addFlashAttribute("form", form);
+                ra.addFlashAttribute("messageType", "danger");
+                ra.addFlashAttribute("message", "El correo institucional ya está registrado.");
+                return "redirect:/signup";
+            }
+
+            ra.addFlashAttribute("messageType", "success");
+            ra.addFlashAttribute("message", "¡Usuario creado correctamente! Ahora inicia sesión.");
+            return "redirect:/signin";
+
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("form", form);
+            ra.addFlashAttribute("messageType", "danger");
+            ra.addFlashAttribute("message", e.getMessage());
+            return "redirect:/signup";
         } catch (Exception e) {
             ra.addFlashAttribute("form", form);
             ra.addFlashAttribute("messageType", "danger");
-            ra.addFlashAttribute("message", "No se pudo guardar la foto. Intenta nuevamente.");
+            ra.addFlashAttribute("message", "Hubo un error al crear el usuario. Inténtalo de nuevo.");
             return "redirect:/signup";
         }
-
-        Student s = Student.builder()
-                .email(form.email())
-                .password(form.password())
-                .name(form.fullName())
-                .uniqueCode(form.uniqueCode())
-                .phone(form.phone())
-                .photo(photoFilename) // guarda solo el filename
-                .build();
-
-        if (!students.createStudent(s)) {
-            ra.addFlashAttribute("form", form);
-            ra.addFlashAttribute("messageType", "danger");
-            ra.addFlashAttribute("message", "El correo institucional ya está registrado.");
-            return "redirect:/signup";
-        }
-
-        ra.addFlashAttribute("messageType", "success");
-        ra.addFlashAttribute("message", "¡Usuario creado correctamente! Ahora inicia sesión.");
-        return "redirect:/signin";
     }
 }

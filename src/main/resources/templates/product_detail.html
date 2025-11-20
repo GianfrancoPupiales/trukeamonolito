@@ -62,11 +62,11 @@
                                 <p class="card-text text-secondary small mb-4">
                                     <i class="fa-solid fa-arrows-rotate me-2"></i>
                                     <strong>Preferencias de intercambio:</strong>
-                                    <span th:if="${productDetail.preferences != null}">
-                    <span th:each="pref, st : ${productDetail.preferences}">
-                      <span th:text="${pref}">Pref</span><span th:if="${!st.last}">, </span>
-                    </span>
-                  </span>
+                                    <span th:if="${productDetail.preferences != null and !productDetail.preferences.isEmpty()}">
+                                        <span th:each="pref, st : ${productDetail.preferences}">
+                                            <span th:text="${pref}">Pref</span><span th:unless="${st.last}">, </span>
+                                        </span>
+                                    </span>
                                 </p>
 
                                 <!-- Datos del estudiante -->
@@ -74,20 +74,18 @@
                                 <h5 class="text-dark fw-bold mb-3">Datos del propietario</h5>
 
                                 <!-- Mostrar datos del propietario solo si hay sesión -->
-                                <div th:if="${#request.userPrincipal != null}" class="d-flex flex-column mb-3">
+                                <div th:if="${session.AUTH_USER != null}" class="d-flex flex-column mb-3">
                                     <p class="card-text text-secondary small">
                                         <i class="fa-solid fa-user me-2"></i>
                                         <strong>Nombre:</strong>
                                         <a class="text-decoration-none"
-                                           th:href="@{/profile/public/{id}(id=${productDetail.student.idStudent})}
-                                + (${#httpServletRequest.requestURI} != null ? ('?from=' + ${#httpServletRequest.requestURI}) : '')">
+                                           th:href="@{/profile/public/{id}(id=${productDetail.student.idStudent}, from=${#httpServletRequest.requestURI})}">
                                             <span th:text="${productDetail.student.name}">Nombre</span>
-                                            <span th:text="${productDetail.student.surname}">Apellido</span>
                                         </a>
                                     </p>
                                 </div>
 
-                                <div th:if="${#request.userPrincipal == null}"
+                                <div th:unless="${session.AUTH_USER != null}"
                                      class="alert alert-warning d-flex align-items-center small" role="alert">
                                     <i class="fa-solid fa-user-lock me-2"></i>
                                     <span>Información del propietario no disponible hasta iniciar sesión.</span>
@@ -124,9 +122,9 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-body"
-                 th:classappend="${messageType} == 'info' ? ' info' : ' error'">
+                 th:classappend="${messageType == 'info'} ? 'info' : 'error'">
                 <i class="fas"
-                   th:classappend="${messageType} == 'info' ? ' fa-info-circle text-info' : ' fa-exclamation-circle text-danger'"></i>
+                   th:classappend="${messageType == 'info'} ? 'fa-info-circle text-info' : 'fa-exclamation-circle text-danger'"></i>
                 <span th:text="${message}">Mensaje</span>
             </div>
         </div>
