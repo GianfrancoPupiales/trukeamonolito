@@ -146,7 +146,7 @@ public class OfferService {
     }
 
     @Transactional
-    public boolean confirmDelivery(int offerId, int studentId, boolean wasDelivered) {
+    public boolean confirmDelivery(int offerId, int studentId, boolean wasDelivered, Integer rating) {
         Offer offer = offers.findById(offerId).orElse(null);
         if (offer == null || offer.getStatus() != OfferStatus.ACCEPTED) return false;
 
@@ -157,16 +157,28 @@ public class OfferService {
         if (!isOfferer && !isOwner) return false; // No está involucrado en esta oferta
 
         if (wasDelivered) {
-            // Confirmar entrega según quién sea
-            if (isOfferer) {
-                offer.confirmByOfferer();
-            } else {
-                offer.confirmByOwner();
+            // Validar rating
+            if (rating == null || rating < 1 || rating > 5) {
+                throw new IllegalArgumentException("La calificación debe estar entre 1 y 5 estrellas");
             }
 
-            // Si ambos confirmaron, marcar como completada
-            if (offer.isBothConfirmed()) {
+            // Confirmar entrega y calificar según quién sea
+            if (isOfferer) {
+                offer.confirmByOfferer(rating);
+                // El oferente califica al dueño del producto
+                int ownerStudentId = offer.getProductToOffer().getStudent().getIdStudent();
+                reputationService.rateStudent(ownerStudentId, rating);
+            } else {
+                offer.confirmByOwner(rating);
+                // El dueño califica al oferente
+                int offererStudentId = offer.getStudentWhoOffered().getIdStudent();
+                reputationService.rateStudent(offererStudentId, rating);
+            }
+
+            // Si ambos confirmaron Y calificaron, marcar como completada
+            if (offer.isBothConfirmedAndRated()) {
                 offer.setStatus(OfferStatus.COMPLETED);
+                offer.markAsDelivered();
             }
 
             offers.save(offer);
@@ -174,7 +186,7 @@ public class OfferService {
         } else {
             // Cancelar la entrega → reactivar productos
             reactivateProducts(offer);
-            // Penalización al que cancela
+            // Penalización al que cancela: calificación de 1 estrella
             reputationService.rateStudent(studentId, 1);
             offer.setStatus(OfferStatus.CANCELLED);
             offers.save(offer);

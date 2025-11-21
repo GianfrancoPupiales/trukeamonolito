@@ -32,22 +32,32 @@ public class OfferDeliveryController {
     @PostMapping("/deliveries/confirm")
     public String confirm(@RequestParam int offerId,
                          @RequestParam boolean wasDelivered,
+                         @RequestParam(required = false) Integer rating,
                          Authentication auth,
                          RedirectAttributes ra){
         try {
-            boolean success = offers.confirmDelivery(offerId, me(auth), wasDelivered);
+            if (wasDelivered && (rating == null || rating < 1 || rating > 5)) {
+                ra.addFlashAttribute("messageType", "danger");
+                ra.addFlashAttribute("message", "Debes seleccionar una calificación de 1 a 5 estrellas.");
+                return "redirect:/offers/deliveries";
+            }
+
+            boolean success = offers.confirmDelivery(offerId, me(auth), wasDelivered, rating);
             if (success) {
                 if (wasDelivered) {
                     ra.addFlashAttribute("messageType", "success");
-                    ra.addFlashAttribute("message", "Entrega confirmada. El trueque se completará cuando ambas partes confirmen.");
+                    ra.addFlashAttribute("message", "Entrega confirmada con calificación de " + rating + " estrellas. El trueque se completará cuando ambas partes confirmen.");
                 } else {
                     ra.addFlashAttribute("messageType", "warning");
-                    ra.addFlashAttribute("message", "Entrega cancelada. Los productos han sido reactivados.");
+                    ra.addFlashAttribute("message", "Entrega cancelada. Los productos han sido reactivados y has recibido una penalización en tu reputación.");
                 }
             } else {
                 ra.addFlashAttribute("messageType", "danger");
                 ra.addFlashAttribute("message", "No se pudo confirmar la entrega.");
             }
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("messageType", "danger");
+            ra.addFlashAttribute("message", e.getMessage());
         } catch (Exception e) {
             ra.addFlashAttribute("messageType", "danger");
             ra.addFlashAttribute("message", "Error al confirmar la entrega: " + e.getMessage());

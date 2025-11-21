@@ -46,6 +46,14 @@ public class Offer implements Serializable {
     @Column(nullable = false)
     private boolean confirmedByOwner = false;
 
+    /** Calificación del oferente al dueño (1-5 estrellas) */
+    @Column
+    private Integer ratingByOfferer;
+
+    /** Calificación del dueño al oferente (1-5 estrellas) */
+    @Column
+    private Integer ratingByOwner;
+
     /** Quién propone la oferta */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "studentWhoOffered", foreignKey = @ForeignKey(name="fk_offer_offered_by"))
@@ -57,23 +65,25 @@ public class Offer implements Serializable {
     public void markAsDelivered() { this.isDelivered = true; }
 
     /** Confirma la entrega desde la perspectiva del estudiante que ofreció */
-    public void confirmByOfferer() {
+    public void confirmByOfferer(Integer rating) {
         this.confirmedByOfferer = true;
-        if (this.confirmedByOwner) {
-            this.markAsDelivered();
-        }
+        this.ratingByOfferer = rating;
     }
 
     /** Confirma la entrega desde la perspectiva del dueño del producto */
-    public void confirmByOwner() {
+    public void confirmByOwner(Integer rating) {
         this.confirmedByOwner = true;
-        if (this.confirmedByOfferer) {
-            this.markAsDelivered();
-        }
+        this.ratingByOwner = rating;
     }
 
     /** Verifica si ambas partes han confirmado */
     public boolean isBothConfirmed() {
         return confirmedByOfferer && confirmedByOwner;
+    }
+
+    /** Verifica si ambas partes han confirmado Y calificado */
+    public boolean isBothConfirmedAndRated() {
+        return confirmedByOfferer && confirmedByOwner
+            && ratingByOfferer != null && ratingByOwner != null;
     }
 }
