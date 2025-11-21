@@ -266,13 +266,13 @@
                             <p class="text-muted">Los productos se reactivarán y recibirás una penalización en tu reputación.</p>
                         </div>
                         <div class="modal-footer justify-content-center">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
                                 <i class="fa-solid fa-times me-2"></i> No, mantener
                             </button>
                             <form th:action="@{/offers/deliveries/confirm}" method="post" class="d-inline">
                                 <input type="hidden" name="offerId" th:value="${offer.idOffer}" />
                                 <input type="hidden" name="wasDelivered" value="false" />
-                                <button type="submit" class="btn btn-danger">
+                                <button type="submit" class="btn btn-outline-danger">
                                     <i class="fa-solid fa-ban me-2"></i> Sí, cancelar
                                 </button>
                             </form>
