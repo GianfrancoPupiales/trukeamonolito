@@ -55,7 +55,7 @@
                         <!-- Nombre -->
                         <p class="card-text text-secondary small mb-2" sec:authorize="isAuthenticated()">
                             <i class="fa-solid fa-user me-2"></i>
-                            <a th:href="@{'/profile/' + ${product.student.idStudent}}"
+                            <a th:href="@{/profile/public/{id}(id=${product.student.idStudent})}"
                                class="text-decoration-none">
                                 <span th:text="${product.student.name}">Usuario</span>
                             </a>

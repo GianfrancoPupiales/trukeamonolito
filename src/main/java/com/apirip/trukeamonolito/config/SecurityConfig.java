@@ -35,8 +35,7 @@ public class SecurityConfig {
                                 "/css/**", "/js/**", "/images/**", "/webjars/**", "/h2/**","/product-images/**",
                                 "/student-images/**", "/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/offers/prepare/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/offers/propose/**").authenticated()
+                        .requestMatchers("/offers/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .formLogin(login -> login

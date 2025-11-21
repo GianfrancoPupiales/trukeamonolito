@@ -101,6 +101,14 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    public List<Product> findAvailableProductsByOwnerAndCategories(int ownerId, List<ProductCategory> categories) {
+        if (categories == null || categories.isEmpty()) {
+            return List.of();
+        }
+        return products.findByStudent_IdStudentAndIsAvailableTrueAndCategoryIn(ownerId, categories);
+    }
+
+    @Transactional(readOnly = true)
     public List<Product> listProductsForGuest() {
         return products.findByIsAvailableTrue();
     }

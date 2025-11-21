@@ -34,19 +34,23 @@ public class OfferWebController {
     @GetMapping("/prepare/{targetProductId}")
     public String prepare(@PathVariable int targetProductId, Authentication auth, Model model){
         var target = products.findProductByIdWithStudent(targetProductId);
+        if (target == null) {
+            throw new EntityNotFoundException("Producto no encontrado: " + targetProductId);
+        }
+
         var currentId = me(auth);
 
         var prefs = target.getPreferences();
         var hasAny = prefs != null && prefs.stream().anyMatch(p -> p == ProductCategory.Cualquiera);
+
         var myProducts = hasAny
                 ? products.findAvailableProductsByOwner(currentId)
-                : products.searchByCategory(target.getCategory(), currentId) // o implementar método específico por prefs
-                ;
+                : products.findAvailableProductsByOwnerAndCategories(currentId, prefs);
 
         model.addAttribute("productDetail", target);
         model.addAttribute("productsOfUser", myProducts);
         model.addAttribute("form", new OfferForm(targetProductId, null));
-        return "offers/prepare"; // vista luego
+        return "offers/prepare";
     }
 
     /** Equivalente a propose */

@@ -5,6 +5,7 @@ import com.apirip.trukeamonolito.student.domain.Student;
 import com.apirip.trukeamonolito.student.repo.StudentRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -55,6 +56,7 @@ public class StudentService {
 
     public List<Student> findAll(){ return repo.findAll(); }
 
+    @Transactional(readOnly = true)
     public Student getPublicProfileWithProducts(int studentId) {
         Student student = repo.findById(studentId).orElse(null);
         if (student == null) {
@@ -67,8 +69,13 @@ public class StudentService {
                 .email(student.getEmail())
                 .photo(student.getPhoto())
                 .uniqueCode(student.getUniqueCode())
+                .reputation(student.getReputation())
                 .build();
-        publicProfile.setProducts(student.getProducts());
+        // Solo productos disponibles para trueque
+        var availableProducts = student.getProducts().stream()
+                .filter(p -> p.getIsAvailable() != null && p.getIsAvailable())
+                .toList();
+        publicProfile.setProducts(availableProducts);
         return publicProfile;
     }
 }
