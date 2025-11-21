@@ -14,11 +14,11 @@
 
 <body>
 <!-- Navbar -->
-<th:block th:replace="fragments/navbar :: navbar"></th:block>
+<th:block th:replace="~{navbar :: navbar}"></th:block>
 
 <main class="container my-4">
     <!-- Feedback -->
-    <th:block th:replace="fragments/alert :: alert"></th:block>
+    <th:block th:replace="~{alert :: alert}"></th:block>
 
     <div class="row">
         <div class="container mt-5">
@@ -107,7 +107,7 @@
                     <!-- Con productos -->
                     <form th:if="${productsOfUser != null and !#lists.isEmpty(productsOfUser)}"
                           th:action="@{/offers/propose}" method="post">
-                        <input type="hidden" name="idTargetProduct" th:value="${productDetail.idProduct}"/>
+                        <input type="hidden" name="targetProductId" th:value="${productDetail.idProduct}"/>
 
                         <div class="form-group">
                             <div class="card border-1 rounded-3 mb-3 px-3 py-2"
@@ -118,7 +118,7 @@
                                         <div class="form-check mt-1 me-3">
                                             <input class="form-check-input product-checkbox"
                                                    type="checkbox"
-                                                   name="selectedProducts"
+                                                   name="offeredProductIds"
                                                    th:value="${myProduct.idProduct}"
                                                    th:attr="data-category=${myProduct.category}">
                                         </div>
@@ -145,7 +145,7 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-outline-dark w-100 text-center mt-3">
+                        <button type="submit" class="btn btn-outline-dark w-100 text-center mt-3" id="btnSubmitOffer">
                             <i class="fa-solid fa-paper-plane me-2"></i> Enviar oferta
                         </button>
                     </form>
@@ -197,6 +197,19 @@
             bsAlert.close();
         }
     }, 2000);
+
+    // Validación del formulario: al menos un producto debe estar seleccionado
+    const form = document.querySelector('form[action*="/offers/propose"]');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const checkboxes = document.querySelectorAll('input[name="offeredProductIds"]:checked');
+            if (checkboxes.length === 0) {
+                e.preventDefault();
+                alert('Por favor selecciona al menos un producto para ofrecer.');
+                return false;
+            }
+        });
+    }
 </script>
 </body>
 </html>

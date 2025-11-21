@@ -5,11 +5,14 @@ import com.apirip.trukeamonolito.offer.service.OfferService;
 import com.apirip.trukeamonolito.product.domain.ProductCategory;
 import com.apirip.trukeamonolito.product.service.ProductService;
 import com.apirip.trukeamonolito.student.repo.StudentRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/offers")
@@ -48,9 +51,38 @@ public class OfferWebController {
 
     /** Equivalente a propose */
     @PostMapping("/propose")
-    public String propose(@Valid @ModelAttribute("form") OfferForm form, Authentication auth){
-        offers.proposeOffer(me(auth), form.targetProductId(), form.offeredProductIds());
-        return "redirect:/products/catalog";
+    public String propose(@Valid @ModelAttribute("form") OfferForm form,
+                         BindingResult br,
+                         Authentication auth,
+                         RedirectAttributes ra){
+        if (br.hasErrors()) {
+            ra.addFlashAttribute("messageType", "danger");
+            ra.addFlashAttribute("message", "Por favor selecciona al menos un producto para ofrecer.");
+            return "redirect:/offers/prepare/" + form.targetProductId();
+        }
+
+        try {
+            offers.proposeOffer(me(auth), form.targetProductId(), form.offeredProductIds());
+            ra.addFlashAttribute("messageType", "success");
+            ra.addFlashAttribute("message", "¡Oferta enviada correctamente!");
+            return "redirect:/products/catalog";
+        } catch (EntityNotFoundException e) {
+            ra.addFlashAttribute("messageType", "danger");
+            ra.addFlashAttribute("message", "Producto no encontrado: " + e.getMessage());
+            return "redirect:/products/catalog";
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("messageType", "danger");
+            ra.addFlashAttribute("message", e.getMessage());
+            return "redirect:/offers/prepare/" + form.targetProductId();
+        } catch (IllegalStateException e) {
+            ra.addFlashAttribute("messageType", "warning");
+            ra.addFlashAttribute("message", e.getMessage());
+            return "redirect:/products/catalog";
+        } catch (Exception e) {
+            ra.addFlashAttribute("messageType", "danger");
+            ra.addFlashAttribute("message", "Error al enviar la oferta. Por favor intenta de nuevo.");
+            return "redirect:/offers/prepare/" + form.targetProductId();
+        }
     }
 
     /** Equivalente a cancel (del emisor) → lo tratamos como REJECTED/CANCELLED desde el servicio de estado */
