@@ -45,8 +45,15 @@ public class OfferDeliveryController {
             boolean success = offers.confirmDelivery(offerId, me(auth), wasDelivered, rating);
             if (success) {
                 if (wasDelivered) {
-                    ra.addFlashAttribute("messageType", "success");
-                    ra.addFlashAttribute("message", "Entrega confirmada con calificación de " + rating + " estrellas. El trueque se completará cuando ambas partes confirmen.");
+                    // Verificar si el intercambio se completó (ambas partes confirmaron y calificaron)
+                    var offer = offers.findById(offerId);
+                    if (offer != null && offer.isBothConfirmedAndRated()) {
+                        ra.addFlashAttribute("messageType", "success");
+                        ra.addFlashAttribute("message", "¡Felicitaciones! Tu intercambio se completó exitosamente. Ambas partes confirmaron la entrega y calificaron la experiencia. El intercambio ha sido movido al historial.");
+                    } else {
+                        ra.addFlashAttribute("messageType", "success");
+                        ra.addFlashAttribute("message", "Entrega confirmada con calificación de " + rating + " estrellas. El trueque se completará cuando ambas partes confirmen.");
+                    }
                 } else {
                     ra.addFlashAttribute("messageType", "warning");
                     ra.addFlashAttribute("message", "Entrega cancelada. Los productos han sido reactivados y has recibido una penalización en tu reputación.");

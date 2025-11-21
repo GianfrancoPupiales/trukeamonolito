@@ -220,10 +220,14 @@ public class OfferService {
         List<Offer> asOfferer = offers.findAcceptedUndeliveredByOfferer(studentId);
         List<Offer> asOwner = offers.findAcceptedUndeliveredByOwner(studentId);
 
-        // Combinar ambas listas
+        // Combinar ambas listas y filtrar las que ya están completamente confirmadas y calificadas
         java.util.Set<Offer> all = new java.util.HashSet<>(asOfferer);
         all.addAll(asOwner);
-        return new java.util.ArrayList<>(all);
+
+        // Filtrar ofertas que ya fueron completadas (ambas partes confirmaron y calificaron)
+        return all.stream()
+                .filter(offer -> !offer.isBothConfirmedAndRated())
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Transactional(readOnly = true)
