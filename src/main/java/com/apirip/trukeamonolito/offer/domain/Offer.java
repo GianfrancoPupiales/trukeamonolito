@@ -38,6 +38,14 @@ public class Offer implements Serializable {
     @Column(nullable = false)
     private boolean isDelivered = false;
 
+    /** Confirmación de entrega por parte del estudiante que ofreció */
+    @Column(nullable = false)
+    private boolean confirmedByOfferer = false;
+
+    /** Confirmación de entrega por parte del dueño del producto objetivo */
+    @Column(nullable = false)
+    private boolean confirmedByOwner = false;
+
     /** Quién propone la oferta */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "studentWhoOffered", foreignKey = @ForeignKey(name="fk_offer_offered_by"))
@@ -47,4 +55,25 @@ public class Offer implements Serializable {
     private Long version;
 
     public void markAsDelivered() { this.isDelivered = true; }
+
+    /** Confirma la entrega desde la perspectiva del estudiante que ofreció */
+    public void confirmByOfferer() {
+        this.confirmedByOfferer = true;
+        if (this.confirmedByOwner) {
+            this.markAsDelivered();
+        }
+    }
+
+    /** Confirma la entrega desde la perspectiva del dueño del producto */
+    public void confirmByOwner() {
+        this.confirmedByOwner = true;
+        if (this.confirmedByOfferer) {
+            this.markAsDelivered();
+        }
+    }
+
+    /** Verifica si ambas partes han confirmado */
+    public boolean isBothConfirmed() {
+        return confirmedByOfferer && confirmedByOwner;
+    }
 }

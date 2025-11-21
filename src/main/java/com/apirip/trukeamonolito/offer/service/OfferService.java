@@ -146,20 +146,36 @@ public class OfferService {
     }
 
     @Transactional
-    public boolean confirmDelivery(int offerId, boolean wasDelivered) {
+    public boolean confirmDelivery(int offerId, int studentId, boolean wasDelivered) {
         Offer offer = offers.findById(offerId).orElse(null);
         if (offer == null || offer.getStatus() != OfferStatus.ACCEPTED) return false;
 
+        // Determinar si el estudiante es el que ofreció o el dueño
+        boolean isOfferer = offer.getStudentWhoOffered().getIdStudent() == studentId;
+        boolean isOwner = offer.getProductToOffer().getStudent().getIdStudent() == studentId;
+
+        if (!isOfferer && !isOwner) return false; // No está involucrado en esta oferta
+
         if (wasDelivered) {
-            offer.markAsDelivered();
-            offer.setStatus(OfferStatus.COMPLETED);
+            // Confirmar entrega según quién sea
+            if (isOfferer) {
+                offer.confirmByOfferer();
+            } else {
+                offer.confirmByOwner();
+            }
+
+            // Si ambos confirmaron, marcar como completada
+            if (offer.isBothConfirmed()) {
+                offer.setStatus(OfferStatus.COMPLETED);
+            }
+
             offers.save(offer);
             return true;
         } else {
-            // se cancela la entrega → reactivar productos
+            // Cancelar la entrega → reactivar productos
             reactivateProducts(offer);
-            // penalización mínima (1) al que ofreció
-            reputationService.rateStudent(offer.getStudentWhoOffered().getIdStudent(), 1);
+            // Penalización al que cancela
+            reputationService.rateStudent(studentId, 1);
             offer.setStatus(OfferStatus.CANCELLED);
             offers.save(offer);
             return true;
@@ -184,6 +200,18 @@ public class OfferService {
     @Transactional(readOnly = true)
     public List<Offer> findAcceptedPendingDeliveryByOwner(int ownerId) {
         return offers.findAcceptedUndeliveredByOwner(ownerId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Offer> findAcceptedPendingDeliveryForStudent(int studentId) {
+        // Obtener ofertas donde el estudiante es oferente o dueño y están ACCEPTED pero no COMPLETED
+        List<Offer> asOfferer = offers.findAcceptedUndeliveredByOfferer(studentId);
+        List<Offer> asOwner = offers.findAcceptedUndeliveredByOwner(studentId);
+
+        // Combinar ambas listas
+        java.util.Set<Offer> all = new java.util.HashSet<>(asOfferer);
+        all.addAll(asOwner);
+        return new java.util.ArrayList<>(all);
     }
 
     @Transactional(readOnly = true)

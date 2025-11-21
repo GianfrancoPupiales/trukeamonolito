@@ -38,6 +38,7 @@ public interface OfferRepository extends JpaRepository<Offer, Integer> {
     List<Offer> findPendingByOfferedProductIds(@Param("ids") List<Integer> productIds);
 
     /** Aceptadas y no entregadas por dueño */
+    @EntityGraph(attributePaths = {"studentWhoOffered", "productToOffer", "productToOffer.student", "offeredProducts"})
     @Query("""
      SELECT o FROM Offer o
      WHERE o.status = 'ACCEPTED'
@@ -46,13 +47,25 @@ public interface OfferRepository extends JpaRepository<Offer, Integer> {
   """)
     List<Offer> findAcceptedUndeliveredByOwner(@Param("ownerId") int ownerId);
 
+    /** Aceptadas y no entregadas donde el usuario es el oferente */
+    @EntityGraph(attributePaths = {"studentWhoOffered", "productToOffer", "productToOffer.student", "offeredProducts"})
+    @Query("""
+     SELECT o FROM Offer o
+     WHERE o.status = 'ACCEPTED'
+       AND o.isDelivered = false
+       AND o.studentWhoOffered.idStudent = :offererId
+  """)
+    List<Offer> findAcceptedUndeliveredByOfferer(@Param("offererId") int offererId);
+
     @EntityGraph(attributePaths = {"studentWhoOffered", "productToOffer", "productToOffer.student", "offeredProducts"})
     List<Offer> findByStudentWhoOffered_IdStudentAndStatus(int studentId, OfferStatus status);
 
     /** Completadas como emisor y como receptor */
+    @EntityGraph(attributePaths = {"studentWhoOffered", "productToOffer", "productToOffer.student", "offeredProducts"})
     @Query("SELECT o FROM Offer o WHERE o.studentWhoOffered.idStudent = :studentId AND o.status = 'COMPLETED' AND o.isDelivered = true")
     List<Offer> findCompletedAsSender(@Param("studentId") int studentId);
 
+    @EntityGraph(attributePaths = {"studentWhoOffered", "productToOffer", "productToOffer.student", "offeredProducts"})
     @Query("SELECT o FROM Offer o WHERE o.productToOffer.student.idStudent = :studentId AND o.status = 'COMPLETED' AND o.isDelivered = true")
     List<Offer> findCompletedAsOwner(@Param("studentId") int studentId);
 

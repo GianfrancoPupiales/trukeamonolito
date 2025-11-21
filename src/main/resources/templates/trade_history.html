@@ -10,13 +10,13 @@
 <body>
 
 <!-- Navbar -->
-<th:block th:replace="fragments/navbar :: navbar"></th:block>
+<th:block th:replace="~{navbar :: navbar}"></th:block>
 
 <main class="container my-4">
     <h1 class="mb-4 text-center">Historial de Trueques Completados</h1>
 
     <!-- Feedback -->
-    <th:block th:replace="fragments/alert :: alert"></th:block>
+    <th:block th:replace="~{alert :: alert}"></th:block>
 
     <!-- Sin historial -->
     <div th:if="${tradeHistory == null or #lists.isEmpty(tradeHistory)}"
@@ -29,7 +29,7 @@
          th:if="${tradeHistory != null and !#lists.isEmpty(tradeHistory)}">
         <div class="col" th:each="offer,iter : ${tradeHistory}"
              th:with="
-           yoSoyOfertante=${offer.studentWhoOffered.idStudent} == ${session.student.idStudent},
+           yoSoyOfertante=${offer.studentWhoOffered.idStudent} == ${currentStudentId},
            idOtro=${yoSoyOfertante} ? ${offer.productToOffer.student.idStudent} : ${offer.studentWhoOffered.idStudent},
            nombreOtro=${yoSoyOfertante} ? ${offer.productToOffer.student.name} : ${offer.studentWhoOffered.name}
          ">
