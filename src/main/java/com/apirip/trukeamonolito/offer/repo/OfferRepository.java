@@ -22,6 +22,7 @@ public interface OfferRepository extends JpaRepository<Offer, Integer> {
                                           @Param("productOwnerId") int productOwnerId);
 
     /** Recibidas (pendientes) por el dueño del producto objetivo */
+    @EntityGraph(attributePaths = {"studentWhoOffered", "productToOffer", "offeredProducts"})
     @Query("""
      SELECT o FROM Offer o
      WHERE o.status = 'PENDING'
@@ -45,6 +46,7 @@ public interface OfferRepository extends JpaRepository<Offer, Integer> {
   """)
     List<Offer> findAcceptedUndeliveredByOwner(@Param("ownerId") int ownerId);
 
+    @EntityGraph(attributePaths = {"studentWhoOffered", "productToOffer", "productToOffer.student", "offeredProducts"})
     List<Offer> findByStudentWhoOffered_IdStudentAndStatus(int studentId, OfferStatus status);
 
     /** Completadas como emisor y como receptor */

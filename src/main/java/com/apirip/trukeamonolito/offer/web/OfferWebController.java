@@ -85,10 +85,4 @@ public class OfferWebController {
         }
     }
 
-    /** Equivalente a cancel (del emisor) → lo tratamos como REJECTED/CANCELLED desde el servicio de estado */
-    @PostMapping("/{id}/cancel")
-    public String cancel(@PathVariable int id){
-        offers.updateStatus(id, com.apirip.trukeamonolito.offer.domain.OfferStatus.CANCELLED);
-        return "redirect:/offers/sent";
-    }
 }

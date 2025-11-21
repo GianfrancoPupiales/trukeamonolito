@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/offers")
@@ -21,29 +22,68 @@ public class OfferInboxController {
 
     private int me(Authentication auth){ return students.findByEmail(auth.getName()).orElseThrow().getIdStudent(); }
 
-    @GetMapping("/inbox")
+    /** Mostrar ofertas recibidas (bandeja de entrada) */
+    @GetMapping("/received")
     public String listReceived(Authentication auth, Model model){
-        model.addAttribute("receivedOffers", offers.findPendingReceivedByOwner(me(auth)));
-        model.addAttribute("view", "received");
-        return "offers/inbox"; // vista luego
+        var receivedOffers = offers.findPendingReceivedByOwner(me(auth));
+        model.addAttribute("receivedOffers", receivedOffers);
+        return "mailbox";
     }
 
+    /** Mostrar ofertas enviadas */
     @GetMapping("/sent")
     public String listSent(Authentication auth, Model model){
-        model.addAttribute("sentOffers", offers.findPendingSentByStudent(me(auth)));
-        model.addAttribute("view", "sent");
-        return "offers/sent"; // vista luego
+        var sentOffers = offers.findPendingSentByStudent(me(auth));
+        model.addAttribute("sentOffers", sentOffers);
+        return "proposals";
     }
 
-    @PostMapping("/{id}/accept")
-    public String accept(@PathVariable int id){
-        offers.updateStatus(id, OfferStatus.ACCEPTED);
-        return "redirect:/offers/inbox";
-    }
+    /** Responder a ofertas: aceptar, rechazar o cancelar */
+    @PostMapping("/respond")
+    public String respond(@RequestParam int offerId,
+                         @RequestParam String action,
+                         RedirectAttributes ra) {
+        try {
+            boolean success = false;
+            String successMessage = "";
+            String redirectUrl = "";
 
-    @PostMapping("/{id}/reject")
-    public String reject(@PathVariable int id){
-        offers.updateStatus(id, OfferStatus.REJECTED);
-        return "redirect:/offers/inbox";
+            switch (action) {
+                case "accept" -> {
+                    success = offers.updateStatus(offerId, OfferStatus.ACCEPTED);
+                    successMessage = "¡Oferta aceptada correctamente! Los productos han sido desactivados.";
+                    redirectUrl = "redirect:/offers/received";
+                }
+                case "reject" -> {
+                    success = offers.updateStatus(offerId, OfferStatus.REJECTED);
+                    successMessage = "Oferta rechazada.";
+                    redirectUrl = "redirect:/offers/received";
+                }
+                case "cancel" -> {
+                    success = offers.updateStatus(offerId, OfferStatus.CANCELLED);
+                    successMessage = "Oferta cancelada correctamente.";
+                    redirectUrl = "redirect:/offers/sent";
+                }
+                default -> {
+                    ra.addFlashAttribute("messageType", "danger");
+                    ra.addFlashAttribute("message", "Acción no válida.");
+                    return "redirect:/offers/received";
+                }
+            }
+
+            if (success) {
+                ra.addFlashAttribute("messageType", "success");
+                ra.addFlashAttribute("message", successMessage);
+            } else {
+                ra.addFlashAttribute("messageType", "warning");
+                ra.addFlashAttribute("message", "No se pudo procesar la oferta. Es posible que ya haya sido procesada.");
+            }
+            return redirectUrl;
+
+        } catch (Exception e) {
+            ra.addFlashAttribute("messageType", "danger");
+            ra.addFlashAttribute("message", "Error al procesar la oferta: " + e.getMessage());
+            return "redirect:/offers/received";
+        }
     }
 }
