@@ -39,18 +39,24 @@ public class StudentService {
         Student existing = repo.findById(s.getIdStudent()).orElse(null);
         if (existing == null) return false;
 
-        if (s.getPassword()==null || s.getPassword().isBlank())
-            s.setPassword(existing.getPassword());
-        else
-            s.setPassword(encoder.encode(s.getPassword()));
+        // Actualizar solo los campos del perfil en el objeto existente
+        existing.setName(s.getName());
+        existing.setEmail(s.getEmail());
+        existing.setPhone(s.getPhone());
+        existing.setUniqueCode(s.getUniqueCode());
 
-        if (s.getPhoto()==null || s.getPhoto().isBlank())
-            s.setPhoto(existing.getPhoto());
+        // Actualizar contraseña solo si viene informada
+        if (s.getPassword() != null && !s.getPassword().isBlank()) {
+            existing.setPassword(encoder.encode(s.getPassword()));
+        }
 
-        if (existing.getReputation()==null) s.setReputation(new Reputation(s));
-        else s.setReputation(existing.getReputation());
+        // Actualizar foto solo si viene informada
+        if (s.getPhoto() != null && !s.getPhoto().isBlank()) {
+            existing.setPhoto(s.getPhoto());
+        }
 
-        repo.save(s);
+        // La reputación y productos ya están en 'existing', no tocarlos
+        repo.save(existing);
         return true;
     }
 

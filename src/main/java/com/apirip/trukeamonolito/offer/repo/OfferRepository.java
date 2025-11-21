@@ -70,4 +70,12 @@ public interface OfferRepository extends JpaRepository<Offer, Integer> {
     List<Offer> findCompletedAsOwner(@Param("studentId") int studentId);
 
     Optional<Offer> findById(Integer id);
+
+    /** Verificar si un producto tiene ofertas asociadas (como producto objetivo) */
+    @Query("SELECT COUNT(o) FROM Offer o WHERE o.productToOffer.idProduct = :productId")
+    long countOffersForTargetProduct(@Param("productId") int productId);
+
+    /** Verificar si un producto está en la lista de productos ofrecidos */
+    @Query("SELECT COUNT(o) FROM Offer o JOIN o.offeredProducts op WHERE op.idProduct = :productId")
+    long countOffersWithOfferedProduct(@Param("productId") int productId);
 }

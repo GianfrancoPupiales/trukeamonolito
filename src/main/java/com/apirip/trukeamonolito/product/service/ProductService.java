@@ -1,5 +1,6 @@
 package com.apirip.trukeamonolito.product.service;
 
+import com.apirip.trukeamonolito.offer.repo.OfferRepository;
 import com.apirip.trukeamonolito.product.domain.Product;
 import com.apirip.trukeamonolito.product.domain.ProductCategory;
 import com.apirip.trukeamonolito.product.dto.ProductForm;
@@ -8,6 +9,7 @@ import com.apirip.trukeamonolito.storage.FileStorageService;
 import com.apirip.trukeamonolito.student.domain.Student;
 import com.apirip.trukeamonolito.student.repo.StudentRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,11 +25,13 @@ public class ProductService {
     private final ProductRepository products;
     private final StudentRepository students;
     private final FileStorageService storage;
+    private final OfferRepository offers;
 
-    public ProductService(ProductRepository products, StudentRepository students, FileStorageService storage) {
+    public ProductService(ProductRepository products, StudentRepository students, FileStorageService storage, OfferRepository offers) {
         this.products = products;
         this.students = students;
         this.storage = storage;
+        this.offers = offers;
     }
 
     @Transactional
@@ -82,7 +86,25 @@ public class ProductService {
 
     @Transactional
     public void removeProduct(int idProduct) {
+        // Verificar si el producto tiene ofertas asociadas
+        if (hasAssociatedOffers(idProduct)) {
+            throw new DataIntegrityViolationException(
+                "No se puede eliminar el producto porque tiene ofertas asociadas. " +
+                "Por favor, rechaza o cancela las ofertas antes de eliminar el producto."
+            );
+        }
         products.deleteById(idProduct);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean hasAssociatedOffers(int productId) {
+        // Verificar si el producto es el objetivo de alguna oferta
+        long offersAsTarget = offers.countOffersForTargetProduct(productId);
+
+        // Verificar si el producto está en la lista de productos ofrecidos
+        long offersAsOffered = offers.countOffersWithOfferedProduct(productId);
+
+        return offersAsTarget > 0 || offersAsOffered > 0;
     }
 
     @Transactional(readOnly = true)

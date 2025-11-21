@@ -5,10 +5,12 @@ import com.apirip.trukeamonolito.product.dto.ProductForm;
 import com.apirip.trukeamonolito.product.service.ProductService;
 import com.apirip.trukeamonolito.student.repo.StudentRepository;
 import jakarta.validation.Valid;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/products")
@@ -69,8 +71,15 @@ public class ProductWebController {
     }
 
     @PostMapping("/{id}/delete")
-    public String delete(@PathVariable int id) {
-        service.removeProduct(id);
+    public String delete(@PathVariable int id, RedirectAttributes ra) {
+        try {
+            service.removeProduct(id);
+            ra.addFlashAttribute("messageType", "success");
+            ra.addFlashAttribute("message", "Producto eliminado correctamente.");
+        } catch (DataIntegrityViolationException e) {
+            ra.addFlashAttribute("messageType", "error");
+            ra.addFlashAttribute("message", e.getMessage());
+        }
         return "redirect:/products";
     }
 
