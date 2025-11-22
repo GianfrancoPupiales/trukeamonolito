@@ -31,7 +31,8 @@ public class SecurityConfig {
     SecurityFilterChain filter(HttpSecurity http, LoginSuccessHandler successHandler) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/","/products/catalog", "/signin", "/signup", "/forgot",
+                        .requestMatchers("/","/products/catalog", "/signin", "/signup",
+                                "/forgot-password", "/reset-password",
                                 "/css/**", "/js/**", "/images/**", "/webjars/**", "/h2/**","/product-images/**",
                                 "/student-images/**", "/uploads/**", "/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/products/**").permitAll()

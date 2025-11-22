@@ -32,3 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 /data/trukea.mv.db
+
+### Environment Variables ###
+.env
