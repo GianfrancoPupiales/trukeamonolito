@@ -187,6 +187,7 @@
                                             <select name="category" class="form-select" required>
                                                 <option value="">Seleccione una categoría</option>
                                                 <option th:each="c : ${T(com.apirip.trukeamonolito.product.domain.ProductCategory).values()}"
+                                                        th:if="${c.name() != 'Cualquiera'}"
                                                         th:value="${c}" th:text="${c}"
                                                         th:selected="${product.category?.name() == c?.name() or product.category == c}">
                                                 </option>
@@ -283,6 +284,7 @@
                                 <select name="category" class="form-select" required>
                                     <option value="">Seleccione una categoría</option>
                                     <option th:each="c : ${T(com.apirip.trukeamonolito.product.domain.ProductCategory).values()}"
+                                            th:if="${c.name() != 'Cualquiera'}"
                                             th:value="${c}" th:text="${c}"></option>
                                 </select>
                             </div>
@@ -339,12 +341,27 @@
     }
     function enforcePrefs(box, alertDiv) {
         const checks = box.querySelectorAll('input[type="checkbox"]');
+
+        // Encontrar el checkbox de "Cualquiera"
+        const cualquieraCheckbox = Array.from(checks).find(c => c.value === 'Cualquiera');
+        const otherCheckboxes = Array.from(checks).filter(c => c.value !== 'Cualquiera');
+
         const validate = () => {
             const selected = Array.from(checks).filter(c => c.checked);
             const ok = selected.length >= 1 && selected.length <= 3;
             alertDiv?.classList.toggle('d-none', ok);
         };
+
         checks.forEach(c => c.addEventListener('change', () => {
+            // Si se selecciona "Cualquiera", deseleccionar todas las demás
+            if (c.value === 'Cualquiera' && c.checked) {
+                otherCheckboxes.forEach(other => other.checked = false);
+            }
+            // Si se selecciona cualquier otra, deseleccionar "Cualquiera"
+            else if (c.value !== 'Cualquiera' && c.checked && cualquieraCheckbox) {
+                cualquieraCheckbox.checked = false;
+            }
+
             const selected = Array.from(checks).filter(cb => cb.checked);
             if (selected.length > 3) {
                 // desmarcar el último que superó el límite
