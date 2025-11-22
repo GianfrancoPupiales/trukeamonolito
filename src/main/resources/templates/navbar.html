@@ -20,7 +20,15 @@
                               th:text="${unreadConversationsCount}">0</span>
                     </a>
                 </li>
-                <li class="nav-item me-2" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/offers/received}"><i class="fas fa-inbox"></i> Ofertas recibidas</a></li>
+                <li class="nav-item me-2" sec:authorize="isAuthenticated()">
+                    <a class="nav-link position-relative" th:href="@{/offers/received}">
+                        <i class="fas fa-inbox"></i> Ofertas recibidas
+                        <span th:if="${pendingOffersCount != null and pendingOffersCount > 0}"
+                              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                              style="font-size: 0.55rem; padding: 0.2rem 0.35rem; min-width: 18px; height: 18px; line-height: 1.2;"
+                              th:text="${pendingOffersCount}">0</span>
+                    </a>
+                </li>
                 <li class="nav-item me-2" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/offers/sent}"><i class="fas fa-paper-plane"></i> Ofertas enviadas</a></li>
                 <li class="nav-item me-2" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/offers/deliveries}"><i class="fas fa-truck"></i> Entregas</a></li>
                 <li class="nav-item me-2" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/trades/history}"><i class="fas fa-history"></i> Historial</a></li>
