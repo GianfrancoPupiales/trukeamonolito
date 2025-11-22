@@ -26,7 +26,8 @@ public class ChatService {
     private final StudentRepository studentRepository;
 
     /**
-     * Crea una conversación a partir de una oferta ACEPTADA
+     * Crea o actualiza una conversación a partir de una oferta ACEPTADA
+     * Si ya existe una conversación entre los dos estudiantes, la reutiliza y agrega la oferta
      */
     @Transactional
     public Conversation createConversationFromOffer(Offer offer) {
@@ -34,27 +35,25 @@ public class ChatService {
             throw new IllegalStateException("Solo se pueden crear conversaciones de ofertas aceptadas");
         }
 
-        // Verifica si ya existe
-        return conversationRepository.findByOffer(offer)
-                .orElseGet(() -> {
-                    Student student1 = offer.getStudentWhoOffered();
-                    Student student2 = offer.getProductToOffer().getStudent();
+        Student student1 = offer.getStudentWhoOffered();
+        Student student2 = offer.getProductToOffer().getStudent();
 
+        // Busca conversación existente entre estos dos estudiantes
+        return conversationRepository.findByParticipants(student1, student2)
+                .map(existingConv -> {
+                    // Agrega la oferta a la conversación existente
+                    existingConv.addOffer(offer);
+                    return conversationRepository.save(existingConv);
+                })
+                .orElseGet(() -> {
+                    // Crea nueva conversación
                     Conversation conversation = Conversation.builder()
                             .student1(student1)
                             .student2(student2)
-                            .offer(offer)
                             .build();
+                    conversation.addOffer(offer);
                     return conversationRepository.save(conversation);
                 });
-    }
-
-    /**
-     * Obtiene conversación por oferta (si existe)
-     */
-    @Transactional(readOnly = true)
-    public Conversation getConversationByOffer(Offer offer) {
-        return conversationRepository.findByOffer(offer).orElse(null);
     }
 
     /**
@@ -175,6 +174,24 @@ public class ChatService {
         other.getName();
         other.getPhoto();
         other.getEmail();
+
+        // Inicializa las ofertas y sus productos
+        if (conversation.getOffers() != null) {
+            conversation.getOffers().forEach(offer -> {
+                // Inicializa producto objetivo
+                if (offer.getProductToOffer() != null) {
+                    offer.getProductToOffer().getTitle();
+                    offer.getProductToOffer().getPhoto();
+                }
+                // Inicializa productos ofrecidos
+                if (offer.getOfferedProducts() != null) {
+                    offer.getOfferedProducts().forEach(product -> {
+                        product.getTitle();
+                        product.getPhoto();
+                    });
+                }
+            });
+        }
 
         return conversation;
     }

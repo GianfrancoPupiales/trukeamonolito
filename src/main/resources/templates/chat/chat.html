@@ -14,11 +14,10 @@
         .chat-container {
             display: flex;
             height: calc(100vh - 60px);
-            max-width: 1400px;
-            margin: 10px auto;
+            max-width: 100%;
+            margin: 0;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: none;
             overflow: hidden;
         }
 
@@ -155,6 +154,125 @@
             color: #0d6efd;
             font-size: 12px;
             font-style: italic;
+        }
+
+        /* Panel de ofertas relacionadas */
+        .offers-context-panel {
+            background: #f0f7ff;
+            border-bottom: 1px solid #d0e5ff;
+        }
+
+        .offers-context-header {
+            padding: 10px 20px;
+            background: #e3f2fd;
+            border-bottom: 1px solid #bbdefb;
+            font-weight: 600;
+            font-size: 13px;
+            color: #1976d2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .offers-context-header:hover {
+            background: #d1e9fc;
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+            font-size: 12px;
+        }
+
+        .toggle-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        .offers-context-list {
+            padding: 10px 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .offers-context-list.collapsed {
+            max-height: 0;
+            padding: 0 20px;
+            overflow: hidden;
+        }
+
+        .offer-context-item {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #d0e5ff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .offer-products-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .offer-side {
+            flex: 1;
+        }
+
+        .offer-label {
+            font-size: 11px;
+            color: #6c757d;
+            margin-bottom: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .products-list {
+            font-size: 13px;
+            color: #212529;
+            line-height: 1.4;
+        }
+
+        .product-name {
+            font-weight: 500;
+        }
+
+        .exchange-icon {
+            color: #0d6efd;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .offer-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .offer-status-badge.status-ACCEPTED {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .offer-status-badge.status-COMPLETED {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .offer-status-badge.status-PENDING {
+            background: #cfe2ff;
+            color: #084298;
+        }
+
+        .offer-status-badge i {
+            font-size: 12px;
         }
 
         /* Mensajes */
@@ -399,6 +517,48 @@
                 </div>
             </div>
 
+            <!-- Ofertas relacionadas -->
+            <div th:if="${conversation.offers != null && !conversation.offers.isEmpty()}"
+                 class="offers-context-panel">
+                <div class="offers-context-header" onclick="toggleOffersPanel()" style="cursor: pointer;">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Ofertas relacionadas (<span th:text="${conversation.offers.size()}">0</span>)</span>
+                    <i class="fas fa-chevron-down toggle-icon rotated" id="offersToggleIcon" style="margin-left: auto;"></i>
+                </div>
+                <div class="offers-context-list collapsed" id="offersContextList">
+                    <div th:each="offer : ${conversation.offers}" class="offer-context-item">
+                        <div class="offer-products-row">
+                            <!-- Productos ofrecidos -->
+                            <div class="offer-side">
+                                <div class="offer-label">Ofrecidos</div>
+                                <div class="products-list">
+                                    <span th:each="product, iterStat : ${offer.offeredProducts}" class="product-name">
+                                        <span th:text="${product.title}">Producto</span><span th:if="${!iterStat.last}">, </span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="exchange-icon">
+                                <i class="fas fa-exchange-alt"></i>
+                            </div>
+
+                            <!-- Producto solicitado -->
+                            <div class="offer-side">
+                                <div class="offer-label">Solicitado</div>
+                                <div class="products-list">
+                                    <span class="product-name" th:text="${offer.productToOffer.title}">Producto</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="offer-status-badge" th:classappend="${'status-' + offer.status}">
+                            <i class="fas" th:classappend="${offer.status == T(com.apirip.trukeamonolito.offer.domain.OfferStatus).ACCEPTED ? 'fa-check-circle' :
+                                                            offer.status == T(com.apirip.trukeamonolito.offer.domain.OfferStatus).COMPLETED ? 'fa-star' : 'fa-times-circle'}"></i>
+                            <span th:text="${offer.status}">ACCEPTED</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Mensajes -->
             <div class="messages-container" id="messagesContainer">
                 <div th:each="msg : ${messages}"
@@ -440,6 +600,17 @@
 
     let stompClient = null;
     let typingTimeout = null;
+
+    // Toggle para mostrar/ocultar ofertas relacionadas
+    function toggleOffersPanel() {
+        const offersList = document.getElementById('offersContextList');
+        const toggleIcon = document.getElementById('offersToggleIcon');
+
+        if (offersList && toggleIcon) {
+            offersList.classList.toggle('collapsed');
+            toggleIcon.classList.toggle('rotated');
+        }
+    }
 
     // Conectar a WebSocket
     function connect() {

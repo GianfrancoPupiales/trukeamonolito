@@ -13,11 +13,6 @@ import java.util.Optional;
 public interface ConversationRepository extends JpaRepository<Conversation, Integer> {
 
     /**
-     * Encuentra una conversación por oferta
-     */
-    Optional<Conversation> findByOffer(Offer offer);
-
-    /**
      * Encuentra una conversación entre dos estudiantes (en cualquier orden)
      */
     @Query("SELECT c FROM Conversation c " +

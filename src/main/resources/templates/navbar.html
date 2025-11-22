@@ -9,13 +9,21 @@
 
         <div class="collapse navbar-collapse" id="navMain">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" th:href="@{/products/catalog}"><i class="fas fa-home"></i> Inicio</a></li>
-                <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/products}"><i class="fas fa-box"></i> Mis productos</a></li>
-                <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/chat}"><i class="fas fa-comments"></i> Chat</a></li>
-                <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/offers/received}"><i class="fas fa-inbox"></i> Ofertas recibidas</a></li>
-                <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/offers/sent}"><i class="fas fa-paper-plane"></i> Ofertas enviadas</a></li>
-                <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/offers/deliveries}"><i class="fas fa-truck"></i> Entregas</a></li>
-                <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/trades/history}"><i class="fas fa-history"></i> Historial de trueques</a></li>
+                <li class="nav-item me-2"><a class="nav-link" th:href="@{/products/catalog}"><i class="fas fa-home"></i> Inicio</a></li>
+                <li class="nav-item me-2" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/products}"><i class="fas fa-box"></i> Mis productos</a></li>
+                <li class="nav-item me-2" sec:authorize="isAuthenticated()">
+                    <a class="nav-link position-relative" th:href="@{/chat}">
+                        <i class="fas fa-comments"></i> Chat
+                        <span th:if="${unreadConversationsCount != null and unreadConversationsCount > 0}"
+                              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                              style="font-size: 0.55rem; padding: 0.2rem 0.35rem; min-width: 18px; height: 18px; line-height: 1.2;"
+                              th:text="${unreadConversationsCount}">0</span>
+                    </a>
+                </li>
+                <li class="nav-item me-2" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/offers/received}"><i class="fas fa-inbox"></i> Ofertas recibidas</a></li>
+                <li class="nav-item me-2" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/offers/sent}"><i class="fas fa-paper-plane"></i> Ofertas enviadas</a></li>
+                <li class="nav-item me-2" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/offers/deliveries}"><i class="fas fa-truck"></i> Entregas</a></li>
+                <li class="nav-item me-2" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/trades/history}"><i class="fas fa-history"></i> Historial</a></li>
             </ul>
 
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">

@@ -40,9 +40,13 @@ public class Conversation implements Serializable {
     @JoinColumn(name = "student2_id", foreignKey = @ForeignKey(name = "fk_conv_student2"))
     private Student student2;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "offer_id", foreignKey = @ForeignKey(name = "fk_conv_offer"))
-    private Offer offer;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "conversation_offer",
+        joinColumns = @JoinColumn(name = "conversation_id"),
+        inverseJoinColumns = @JoinColumn(name = "offer_id")
+    )
+    private List<Offer> offers = new ArrayList<>();
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -83,5 +87,17 @@ public class Conversation implements Serializable {
      */
     public void updateLastMessageTime() {
         this.lastMessageAt = LocalDateTime.now();
+    }
+
+    /**
+     * Añade una oferta a la conversación si no existe ya
+     */
+    public void addOffer(Offer offer) {
+        if (this.offers == null) {
+            this.offers = new ArrayList<>();
+        }
+        if (!this.offers.contains(offer)) {
+            this.offers.add(offer);
+        }
     }
 }
