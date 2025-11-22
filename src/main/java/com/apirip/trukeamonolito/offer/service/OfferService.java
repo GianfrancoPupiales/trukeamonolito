@@ -1,5 +1,6 @@
 package com.apirip.trukeamonolito.offer.service;
 
+import com.apirip.trukeamonolito.chat.service.ChatService;
 import com.apirip.trukeamonolito.offer.domain.*;
 import com.apirip.trukeamonolito.offer.repo.OfferRepository;
 import com.apirip.trukeamonolito.product.domain.Product;
@@ -8,6 +9,7 @@ import com.apirip.trukeamonolito.reputation.service.ReputationService;
 import com.apirip.trukeamonolito.student.domain.Student;
 import com.apirip.trukeamonolito.student.repo.StudentRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,13 +23,16 @@ public class OfferService {
     private final ProductService productService;
     private final ReputationService reputationService;
     private final StudentRepository students;
+    private final ChatService chatService;
 
     public OfferService(OfferRepository offers, ProductService productService,
-                        ReputationService reputationService, StudentRepository students) {
+                        ReputationService reputationService, StudentRepository students,
+                        @Lazy ChatService chatService) {
         this.offers = offers;
         this.productService = productService;
         this.reputationService = reputationService;
         this.students = students;
+        this.chatService = chatService;
     }
 
     @Transactional
@@ -106,6 +111,13 @@ public class OfferService {
                 deactivateProducts(offer);
                 // cancelar otras ofertas pendientes que involucren los mismos productos ofrecidos
                 cancelConflictingOffers(offer);
+                // crear conversación de chat automáticamente
+                try {
+                    chatService.createConversationFromOffer(offer);
+                } catch (Exception e) {
+                    // Log pero no falla la transacción
+                    System.err.println("Error al crear conversación: " + e.getMessage());
+                }
                 return true;
             }
             default -> { return false; }

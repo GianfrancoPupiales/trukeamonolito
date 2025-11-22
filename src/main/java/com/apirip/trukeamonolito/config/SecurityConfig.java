@@ -33,9 +33,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/","/products/catalog", "/signin", "/signup", "/forgot",
                                 "/css/**", "/js/**", "/images/**", "/webjars/**", "/h2/**","/product-images/**",
-                                "/student-images/**", "/uploads/**").permitAll()
+                                "/student-images/**", "/uploads/**", "/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
                         .requestMatchers("/offers/**").authenticated()
+                        .requestMatchers("/chat/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .formLogin(login -> login
