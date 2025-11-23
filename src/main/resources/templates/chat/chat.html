@@ -616,27 +616,50 @@
     function connect() {
         const socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
-        stompClient.debug = null; // Desactiva logs
+
+        // Habilitar logs de debug solo en desarrollo
+        stompClient.debug = function(str) {
+            console.log('[STOMP] ' + str);
+        };
 
         stompClient.connect({}, function(frame) {
-            console.log('Conectado al chat');
+            console.log('✅ Conectado al WebSocket exitosamente');
+            console.log('Frame:', frame);
 
             if (currentConversationId) {
-                // Suscribirse a los mensajes de esta conversación
-                stompClient.subscribe('/topic/conversation/' + currentConversationId, function(message) {
-                    const msg = JSON.parse(message.body);
-                    displayMessage(msg);
-                });
+                console.log('📡 Suscribiéndose a conversación ID:', currentConversationId);
 
-                // Suscribirse al indicador de "escribiendo"
-                stompClient.subscribe('/user/queue/typing', function(message) {
-                    showTypingIndicator();
+                // Suscribirse a los mensajes de esta conversación
+                // Formato para RabbitMQ STOMP: /topic/conversation.{id}
+                const topicDestination = '/topic/conversation.' + currentConversationId;
+                console.log('📡 Destino STOMP:', topicDestination);
+
+                const subscription = stompClient.subscribe(topicDestination, function(message) {
+                    console.log('📨 Mensaje recibido vía WebSocket:', message.body);
+                    try {
+                        const msg = JSON.parse(message.body);
+                        console.log('📩 Mensaje parseado:', msg);
+                        displayMessage(msg);
+                    } catch (e) {
+                        console.error('❌ Error al parsear mensaje:', e);
+                    }
                 });
+                console.log('✅ Suscripción exitosa a', topicDestination);
+
+                // Nota: Typing indicator deshabilitado con RabbitMQ STOMP
+                // RabbitMQ requiere formato diferente para /user destinations
             }
         }, function(error) {
-            console.error('Error de conexión:', error);
+            console.error('❌ Error de conexión WebSocket:', error);
+            console.log('🔄 Reintentando conexión en 5 segundos...');
             setTimeout(connect, 5000);
         });
+
+        // Detectar desconexión
+        socket.onclose = function() {
+            console.warn('⚠️ Conexión WebSocket cerrada. Reconectando...');
+            setTimeout(connect, 3000);
+        };
     }
 
     // Enviar mensaje
@@ -644,30 +667,63 @@
         const input = document.getElementById('messageInput');
         const content = input.value.trim();
 
-        if (content && currentConversationId && stompClient) {
-            const message = {
-                conversationId: currentConversationId,
-                senderId: currentStudentId,
-                content: content,
-                type: 'CHAT'
-            };
-
-            stompClient.send('/app/chat/' + currentConversationId, {}, JSON.stringify(message));
-            input.value = '';
+        if (!content) {
+            console.log('⚠️ Mensaje vacío, no se envía');
+            return;
         }
+
+        if (!currentConversationId) {
+            console.error('❌ No hay conversación activa');
+            return;
+        }
+
+        if (!stompClient || !stompClient.connected) {
+            console.error('❌ WebSocket no conectado');
+            alert('No estás conectado al chat. Recargando...');
+            location.reload();
+            return;
+        }
+
+        const message = {
+            conversationId: currentConversationId,
+            senderId: currentStudentId,
+            content: content,
+            type: 'CHAT'
+        };
+
+        console.log('📤 Enviando mensaje:', message);
+        stompClient.send('/app/chat/' + currentConversationId, {}, JSON.stringify(message));
+        console.log('✅ Mensaje enviado al servidor');
+        input.value = '';
     }
 
     // Mostrar mensaje en la UI
     function displayMessage(msg) {
+        console.log('🎨 Mostrando mensaje en UI:', msg);
+
         const container = document.getElementById('messagesContainer');
+        if (!container) {
+            console.error('❌ Contenedor de mensajes no encontrado');
+            return;
+        }
+
         const isSent = msg.senderId === currentStudentId;
+        console.log('👤 Mensaje es de:', isSent ? 'mí (enviado)' : 'otro usuario (recibido)');
 
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message ' + (isSent ? 'sent' : 'received');
 
-        const now = new Date();
-        const time = now.getHours().toString().padStart(2, '0') + ':' +
-                     now.getMinutes().toString().padStart(2, '0');
+        // Usar la fecha del mensaje si está disponible, sino usar la hora actual
+        let time;
+        if (msg.sentAt) {
+            const sentDate = new Date(msg.sentAt);
+            time = sentDate.getHours().toString().padStart(2, '0') + ':' +
+                   sentDate.getMinutes().toString().padStart(2, '0');
+        } else {
+            const now = new Date();
+            time = now.getHours().toString().padStart(2, '0') + ':' +
+                   now.getMinutes().toString().padStart(2, '0');
+        }
 
         messageDiv.innerHTML = `
             <div class="message-bubble">
@@ -678,13 +734,13 @@
 
         container.appendChild(messageDiv);
         container.scrollTop = container.scrollHeight;
+        console.log('✅ Mensaje agregado a la UI y scroll actualizado');
     }
 
-    // Indicador de "escribiendo"
+    // Indicador de "escribiendo" - DESHABILITADO con RabbitMQ
     function sendTypingIndicator() {
-        if (currentConversationId && stompClient && stompClient.connected) {
-            stompClient.send('/app/chat/' + currentConversationId + '/typing', {}, '{}');
-        }
+        // Deshabilitado: RabbitMQ STOMP requiere formato diferente para /user destinations
+        // Para habilitar, usar /exchange/amq.topic/typing.{conversationId}
     }
 
     function showTypingIndicator() {

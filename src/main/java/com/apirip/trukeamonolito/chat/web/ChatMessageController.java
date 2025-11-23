@@ -52,18 +52,14 @@ public class ChatMessageController {
             ChatMessageDTO responseDTO = chatService.toDTO(savedMessage);
 
             // Envía el mensaje a todos los suscritos al topic de esta conversación
+            // Formato para RabbitMQ STOMP: /topic/conversation.{id}
             messagingTemplate.convertAndSend(
-                    "/topic/conversation/" + conversationId,
+                    "/topic/conversation." + conversationId,
                     responseDTO
             );
 
-            // Envía notificación al otro participante
-            Student otherStudent = conversation.getOtherParticipant(sender);
-            messagingTemplate.convertAndSendToUser(
-                    otherStudent.getEmail(),
-                    "/queue/notifications",
-                    responseDTO
-            );
+            // Nota: Notificaciones de usuario deshabilitadas para simplificar con RabbitMQ
+            // Los mensajes se reciben vía el topic compartido
 
         } catch (Exception e) {
             // Log error y envía mensaje de error al remitente
@@ -82,35 +78,13 @@ public class ChatMessageController {
 
     /**
      * Maneja el indicador de "está escribiendo"
+     * DESHABILITADO: RabbitMQ STOMP tiene formato diferente para /user destinations
      */
     @MessageMapping("/chat/{conversationId}/typing")
     public void typing(
             @DestinationVariable Integer conversationId,
             Principal principal) {
-
-        try {
-            Student sender = studentRepository.findByEmail(principal.getName())
-                    .orElseThrow(() -> new IllegalStateException("Usuario no autenticado"));
-
-            Conversation conversation = chatService.getConversationById(conversationId, sender);
-
-            ChatMessageDTO typingDTO = ChatMessageDTO.builder()
-                    .conversationId(conversationId)
-                    .senderId(sender.getIdStudent())
-                    .senderName(sender.getName())
-                    .type(ChatMessageDTO.MessageType.TYPING)
-                    .build();
-
-            // Envía solo al otro participante
-            Student otherStudent = conversation.getOtherParticipant(sender);
-            messagingTemplate.convertAndSendToUser(
-                    otherStudent.getEmail(),
-                    "/queue/typing",
-                    typingDTO
-            );
-
-        } catch (Exception e) {
-            // Ignora errores en typing indicator
-        }
+        // Typing indicator deshabilitado para simplificar integración con RabbitMQ
+        // Puede habilitarse usando formato /exchange/amq.topic/typing.{conversationId}
     }
 }
