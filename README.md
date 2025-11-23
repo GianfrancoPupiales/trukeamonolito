@@ -191,7 +191,7 @@ Plataforma web de intercambio y trueque de productos para estudiantes de la Escu
 ### 1. Clonar el Repositorio
 
 ```bash
-git clone <url-del-repositorio>
+git clone https://github.com/GianfrancoPupiales/trukeamonolito.git
 cd trukea-monolito
 ```
 
@@ -826,7 +826,6 @@ trukea-monolito/
 ├── mvnw.cmd                             # Maven Wrapper (Windows)
 ├── enable-rabbitmq-stomp.ps1            # Script para habilitar STOMP
 ├── verify-rabbitmq.ps1                  # Script de verificación
-├── CLAUDE.md                            # Instrucciones para Claude Code
 ├── CLUSTERING.md                        # Guía de clustering
 ├── RABBITMQ_SETUP.md                    # Guía de instalación RabbitMQ
 └── README.md                            # Este archivo
