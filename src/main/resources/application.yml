@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: jdbc:h2:file:./data/trukea;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/trukeadb}
+    username: ${DB_USERNAME:trukea}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
 
   messages:
     basename: messages,ValidationMessages
@@ -15,18 +15,13 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
     defer-datasource-initialization: true
 
   sql:
     init:
       mode: always
-
-  h2:
-    console:
-      enabled: true
-      path: /h2
 
   mail:
     host: ${MAIL_HOST:sandbox.smtp.mailtrap.io}
@@ -39,6 +34,16 @@ spring:
           auth: true
           starttls:
             enable: true
+
+websocket:
+  mode: ${WEBSOCKET_MODE:simple}
+
+rabbitmq:
+  host: ${RABBITMQ_HOST:localhost}
+  stomp:
+    port: ${RABBITMQ_STOMP_PORT:61613}
+  username: ${RABBITMQ_USERNAME:guest}
+  password: ${RABBITMQ_PASSWORD:guest}
 
 server:
   port: 8080
