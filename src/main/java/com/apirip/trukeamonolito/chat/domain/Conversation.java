@@ -15,8 +15,7 @@ import java.util.List;
 @Table(name = "conversation",
         indexes = {
                 @Index(name = "idx_conv_student1", columnList = "student1_id"),
-                @Index(name = "idx_conv_student2", columnList = "student2_id"),
-                @Index(name = "idx_conv_offer", columnList = "offer_id")
+                @Index(name = "idx_conv_student2", columnList = "student2_id")
         })
 @Getter
 @Setter
